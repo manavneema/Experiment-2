@@ -1,0 +1,104 @@
+{
+  "bronze_duration_mean": [
+    "bronze_duration_std",
+    "raw_avg_speed_mean",
+    "silver_avg_speed_imputed"
+  ],
+  "bronze_duration_std": [
+    "bronze_duration_mean"
+  ],
+  "raw_distance_mean": [
+    "raw_distance_std",
+    "raw_avg_speed_mean",
+    "bronze_distance_km_mean"
+  ],
+  "raw_distance_std": [
+    "raw_distance_mean",
+    "raw_max_trip_end_ts",
+    "raw_avg_speed_mean"
+  ],
+  "bronze_distance_km_mean": [
+    "bronze_distance_km_std",
+    "raw_distance_mean",
+    "silver_avg_speed_imputed",
+    "mean_fuel_per_100km",
+    "mean_idling_per_100km"
+  ],
+  "bronze_distance_km_std": [
+    "bronze_distance_km_mean"
+  ],
+  "silver_ml_imputed_fuel_std": [
+    "silver_ml_prediction_std",
+    "silver_ml_imputed_fuel_mean",
+    "silver_ml_percentage_error_mean"
+  ],
+  "silver_ml_prediction_std": [
+    "silver_ml_imputed_fuel_std",
+    "silver_ml_prediction_mean",
+    "silver_ml_imputed_fuel_mean"
+  ],
+  "silver_ml_imputed_fuel_mean": [
+    "silver_ml_percentage_error_mean",
+    "silver_ml_prediction_mean",
+    "silver_ml_imputed_fuel_std",
+    "silver_ml_prediction_std"
+  ],
+  "silver_ml_percentage_error_mean": [
+    "silver_ml_imputed_fuel_mean",
+    "silver_ml_imputed_fuel_std",
+    "silver_ml_prediction_mean"
+  ],
+  "mean_fuel_per_100km": [
+    "silver_avg_speed_imputed",
+    "bronze_excessive_daily_events_units",
+    "silver_ml_residual_std",
+    "bronze_ingestion_duration_sec",
+    "bronze_distance_km_mean"
+  ],
+  "silver_avg_speed_imputed": [
+    "mean_fuel_per_100km",
+    "bronze_distance_km_mean",
+    "bronze_duration_mean"
+  ],
+  "silver_ml_prediction_mean": [
+    "silver_ml_imputed_fuel_mean",
+    "silver_ml_prediction_std",
+    "silver_ml_residual_std",
+    "silver_ml_percentage_error_mean"
+  ],
+  "bronze_impossible_speed_events": [
+    "bronze_ingestion_duration_sec"
+  ],
+  "bronze_ingestion_duration_sec": [
+    "bronze_impossible_speed_events",
+    "mean_fuel_per_100km"
+  ],
+  "raw_avg_speed_mean": [
+    "raw_distance_mean",
+    "mean_idling_per_100km",
+    "raw_distance_std",
+    "bronze_duration_mean"
+  ],
+  "silver_ml_residual_std": [
+    "silver_ml_prediction_mean",
+    "mean_fuel_per_100km"
+  ],
+  "bronze_excessive_daily_events_units": [
+    "mean_fuel_per_100km",
+    "bronze_survival_rate"
+  ],
+  "raw_max_trip_end_ts": [
+    "raw_distance_std"
+  ],
+  "mean_idling_per_100km": [
+    "raw_avg_speed_std",
+    "raw_avg_speed_mean",
+    "bronze_distance_km_mean"
+  ],
+  "raw_avg_speed_std": [
+    "mean_idling_per_100km"
+  ],
+  "bronze_survival_rate": [
+    "bronze_excessive_daily_events_units"
+  ]
+}
