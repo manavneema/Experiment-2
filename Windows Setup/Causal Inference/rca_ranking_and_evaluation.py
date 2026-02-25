@@ -1,13 +1,12 @@
 # Databricks notebook source
 # MAGIC %md
 # MAGIC # Unified RCA Evaluation Across All Causal Discovery Algorithms
-# MAGIC 
+# MAGIC
 # MAGIC This notebook evaluates root cause analysis performance across:
 # MAGIC - **Pipeline A**: PC-Based (directed/undirected edges)
 # MAGIC - **Pipeline B**: GraphicalLasso-Based (undirected edges, partial correlations)
 # MAGIC - **Pipeline C**: NOTEARS-Based (directed DAG, structural weights)
-# MAGIC - **Pipeline D**: Hybrid PC→NOTEARS→Bootstrap (directed DAG, bootstrap-stable weights)
-# MAGIC 
+# MAGIC
 # MAGIC Supports both **filtered** (after human priors) and **raw** (before human priors) graphs.
 
 # COMMAND ----------
@@ -56,7 +55,7 @@ GRAPH_REGISTRY = {
         "upstream_map": "upstream_map.json",
         "downstream_map": "downstream_map.json",
         "baseline_stats": "baseline_stats.json",
-        "traversal_method": "downstream",  # PC produces mostly directed edges
+        "traversal_method": "upstream",  # PC produces mostly directed edges
     },
     "pc_raw": {
         "name": "PC Algorithm (Raw)",
@@ -68,7 +67,7 @@ GRAPH_REGISTRY = {
         "upstream_map": "raw_upstream_map.json",
         "downstream_map": "raw_downstream_map.json",
         "baseline_stats": "baseline_stats.json",
-        "traversal_method": "downstream",
+        "traversal_method": "upstream",
     },
     
     # GraphicalLasso Graphs
@@ -108,7 +107,7 @@ GRAPH_REGISTRY = {
         "upstream_map": "upstream_map.json",
         "downstream_map": "downstream_map.json",
         "baseline_stats": "baseline_stats.json",
-        "traversal_method": "downstream",  # DAGs use downstream traversal
+        "traversal_method": "upstream",  # DAGs use downstream traversal
     },
     "notears_raw": {
         "name": "NOTEARS (Raw)",
@@ -120,14 +119,10 @@ GRAPH_REGISTRY = {
         "upstream_map": "raw_upstream_map.json",
         "downstream_map": "raw_downstream_map.json",
         "baseline_stats": "baseline_stats.json",
-        "traversal_method": "downstream",
+        "traversal_method": "upstream",
     },
-    
-    # ===========================
-    # Hybrid PC→NOTEARS→Bootstrap (Pipeline D)
-    # ===========================
-    # Best of both worlds: PC skeleton + NOTEARS weights + Bootstrap stability
-    # Features: Automatic redundancy detection, tier constraints, structural priors
+
+    # PC skeleton + NOTEARS weights + Bootstrap stability
     "hybrid_filtered": {
         "name": "Hybrid PC-NOTEARS-Bootstrap (Filtered)",
         "algorithm": "Hybrid_PC_NOTEARS_Bootstrap",
@@ -164,8 +159,7 @@ GRAPHS_TO_EVALUATE = {
     # NOTEARS
     "notears_filtered": False,
     "notears_raw": False,
-    
-    # Hybrid PC-NOTEARS-Bootstrap (Pipeline D) - NEW
+
     "hybrid_filtered": True,
 }
 
@@ -173,7 +167,7 @@ GRAPHS_TO_EVALUATE = {
 # TEST SCENARIOS
 # ===========================
 # Test dates to evaluate (supports multiple test cases in single run)
-TEST_DATES = ["2026-02-06", "2026-02-09", "2026-02-10", "2026-02-11"]
+TEST_DATES = ["2026-02-06", "2026-02-09", "2026-02-10", "2026-02-11"]  
 
 # ===========================
 # ANOMALY DETECTION THRESHOLDS
@@ -186,15 +180,7 @@ IQR_MULTIPLIER = 1.5      # Flag if value outside [Q1 - 1.5*IQR, Q3 + 1.5*IQR]
 # ===========================
 MAX_DEPTH = 3             # Maximum BFS traversal depth
 DECAY_FACTOR = 0.6        # Score decay per hop (closer anomalies weighted higher)
-SELF_ANOMALY_BONUS = 2.0  # Base multiplier if candidate itself is anomalous
-
-# ===========================
-# SEVERITY WEIGHTING (Option 1 - CloudRanger/MonitorRank approach)
-# ===========================
-# When enabled, anomalies contribute to scores proportional to their severity (|z-score|).
-# This prevents hub nodes from dominating rankings when their downstream anomalies are mild.
-# Reference: CloudRanger (Wang et al., ESEC/FSE 2018), MonitorRank (Kim et al., KDD 2013)
-USE_SEVERITY_WEIGHTING = True  # Set False to use uniform weighting (baseline)
+SELF_ANOMALY_BONUS = 2.0  # Multiplier if candidate itself is anomalous
 
 # ===========================
 # PRINT CONFIGURATION
@@ -214,7 +200,6 @@ print(f"Z-score threshold: {Z_SCORE_THRESHOLD}")
 print(f"IQR multiplier: {IQR_MULTIPLIER}")
 print(f"Max traversal depth: {MAX_DEPTH}")
 print(f"Decay factor: {DECAY_FACTOR}")
-print(f"Severity weighting: {'ENABLED (CloudRanger approach)' if USE_SEVERITY_WEIGHTING else 'DISABLED (uniform)'}")
 
 # COMMAND ----------
 
@@ -222,6 +207,7 @@ print(f"Severity weighting: {'ENABLED (CloudRanger approach)' if USE_SEVERITY_WE
 # MAGIC ## Ground Truth Definition
 
 # COMMAND ----------
+
 
 # ===========================
 # GROUND TRUTH
@@ -257,6 +243,7 @@ GROUND_TRUTH = {
             "raw_distance_mean",  
         },
         "test_date": "2026-02-09"
+
     },
     
     # ---------------------------------------------------------
@@ -282,6 +269,43 @@ GROUND_TRUTH = {
         },
         "test_date": "2026-02-11"
     },
+    
+    # # ---------------------------------------------------------
+    # # CASE 5: Silver Layer - Vehicle Info Join Failures
+    # # ---------------------------------------------------------
+    # "case5_vehicle_join_failures": {
+    #     "description": "Vehicle ID corruption causing join failures",
+    #     "true_roots": {
+    #         "silver_vehicle_info_join_miss_rate",
+    #         "silver_vehicle_type_nulls"
+    #     },
+    #     "test_date": "2026-02-10"
+    # },
+    
+    # # ---------------------------------------------------------
+    # # CASE 6: ML Layer - Fuel Anomalies
+    # # ---------------------------------------------------------
+    # "case6_fuel_anomalies": {
+    #     "description": "Fuel sensor anomalies affecting ML model",
+    #     "true_roots": {
+    #         "silver_ml_large_error_count",
+    #         "silver_ml_imputed_fuel_p95"
+    #     },
+    #     "test_date": "2026-02-11"
+    # },
+    
+    # # ---------------------------------------------------------
+    # # CASE 7: Compound Fault - Multiple Raw Issues
+    # # ---------------------------------------------------------
+    # "case7_compound_sensor_failures": {
+    #     "description": "Compound sensor failure affecting multiple columns",
+    #     "true_roots": {
+    #         "raw_null_count_distance",
+    #         "raw_null_count_avg_speed",
+    #         "raw_null_count_idle_time"
+    #     },
+    #     "test_date": "2026-02-12"
+    # },
 }
 
 # Map test dates to their ground truth case
@@ -396,12 +420,12 @@ def validate_graph_files(graph_key: str) -> bool:
 
 # MAGIC %md
 # MAGIC ## Anomaly Detection
-# MAGIC 
+# MAGIC
 # MAGIC **Method**: Dual-test approach using Z-score AND IQR for robustness.
 # MAGIC - **Z-score test**: Flags values > 3 standard deviations from mean (assumes normality)
 # MAGIC - **IQR test**: Flags values outside [Q1 - 1.5×IQR, Q3 + 1.5×IQR] (distribution-free)
 # MAGIC - **Combined**: Anomaly if EITHER test triggers (more sensitive)
-# MAGIC 
+# MAGIC
 # MAGIC **Why dual tests?**
 # MAGIC - Z-score catches extreme values in normally distributed metrics
 # MAGIC - IQR catches outliers even in skewed distributions
@@ -490,23 +514,6 @@ def detect_anomalies(
 
 # MAGIC %md
 # MAGIC ## Candidate Scoring Algorithms
-# MAGIC 
-# MAGIC Two traversal methods are supported, each suited to different graph types:
-# MAGIC 
-# MAGIC ### 1. Downstream Traversal (for DAGs: NOTEARS, PC)
-# MAGIC **Intuition**: A true root cause will have many anomalous metrics DOWNSTREAM of it.
-# MAGIC - Start at each candidate metric
-# MAGIC - BFS traverse following causal edges (parent → child)
-# MAGIC - Score = sum of reachable anomalies weighted by decay and edge strength
-# MAGIC - Bonus if candidate itself is anomalous
-# MAGIC 
-# MAGIC ### 2. Upstream Traversal (for undirected graphs: GraphicalLasso)
-# MAGIC **Intuition**: Trace back from anomalies to find common upstream causes.
-# MAGIC - Start at each detected anomaly
-# MAGIC - BFS traverse following edges backward (child → parent)
-# MAGIC - Metrics visited by MANY anomalies get higher scores
-# MAGIC - Edge weights amplify scores along strong connections
-# MAGIC 
 # MAGIC ### Edge Weights
 # MAGIC - **PC**: OLS regression coefficients (|β|)
 # MAGIC - **GraphicalLasso**: Absolute partial correlations
@@ -514,128 +521,13 @@ def detect_anomalies(
 
 # COMMAND ----------
 
-def score_candidates_downstream(
-    anomalies: dict,
-    downstream_map: dict,
-    edge_weights: dict = None,
-    max_depth: int = 3,
-    decay: float = 0.6,
-    self_anomaly_bonus: float = 2.0,
-    use_severity_weighting: bool = True
-) -> Tuple[dict, dict]:
-    """
-    Score root cause candidates by counting downstream anomalies they can reach.
-    
-    Algorithm (for each candidate):
-    1. BFS from candidate following downstream edges
-    2. At each hop, multiply score by decay factor and edge weight
-    3. Accumulate score for each reachable anomaly, weighted by severity
-    4. Apply bonus if candidate itself is anomalous (scaled by own severity)
-    
-    Severity Weighting (CloudRanger/MonitorRank approach):
-    - Each anomaly contributes score proportional to |z-score|
-    - More severe anomalies have more influence on root cause ranking
-    - Self-anomaly bonus is scaled by candidate's own severity
-    
-    Args:
-        anomalies: Dict of detected anomalies {metric: {z_score, value, ...}}
-        downstream_map: Dict mapping node -> list of children
-        edge_weights: Dict mapping (parent, child) -> weight
-        max_depth: Maximum BFS depth
-        decay: Score decay per hop (0.6 = 60% of previous hop's score)
-        self_anomaly_bonus: Base score multiplier if candidate is anomalous
-        use_severity_weighting: If True, weight by |z-score| (default True)
-        
-    Returns:
-        Tuple of (candidate_scores dict, traversal_details dict)
-    """
-    anomalous_metrics = set(anomalies.keys())
-    
-    # Pre-compute severity weights for all anomalies
-    # Severity = |z-score|, normalized to [1, max_severity] range
-    severity_weights = {}
-    for metric, info in anomalies.items():
-        z = info.get('z_score')
-        if z is not None and use_severity_weighting:
-            # Use |z-score| as severity, with minimum of 1.0
-            severity_weights[metric] = max(1.0, abs(z))
-        else:
-            severity_weights[metric] = 1.0
-    
-    # Get all potential candidates
-    all_candidates = set(anomalous_metrics)
-    for metric in downstream_map.keys():
-        all_candidates.add(metric)
-    
-    candidate_scores = {}
-    traversal_details = {}
-    
-    for candidate in all_candidates:
-        # BFS traversal downstream
-        visited = set()
-        queue = [(candidate, 0, 1.0)]  # (node, depth, accumulated_score)
-        reachable_anomalies = []
-        total_score = 0.0
-        
-        while queue:
-            current_node, depth, score = queue.pop(0)
-            
-            if current_node in visited or depth > max_depth:
-                continue
-            
-            visited.add(current_node)
-            
-            # Count reachable anomaly (excluding self)
-            if current_node in anomalous_metrics and current_node != candidate:
-                # SEVERITY WEIGHTING: Multiply by anomaly's severity
-                severity = severity_weights.get(current_node, 1.0)
-                weighted_contribution = score * severity
-                reachable_anomalies.append((current_node, depth, score, severity, weighted_contribution))
-                total_score += weighted_contribution
-            
-            # Expand to children
-            if depth < max_depth:
-                children = downstream_map.get(current_node, [])
-                
-                for child in children:
-                    # Get edge weight (default 1.0 if not found)
-                    weight = edge_weights.get((current_node, child), 1.0) if edge_weights else 1.0
-                    # Propagate score with decay and edge weight
-                    propagated_score = score * decay * weight
-                    queue.append((child, depth + 1, propagated_score))
-        
-        candidate_scores[candidate] = total_score
-        
-        # Apply self-anomaly bonus (scaled by own severity if severity weighting enabled)
-        if candidate in anomalous_metrics:
-            own_severity = severity_weights.get(candidate, 1.0)
-            # Dynamic bonus: base_bonus * (1 + log(severity)) for smoother scaling
-            if use_severity_weighting and own_severity > 1.0:
-                dynamic_bonus = self_anomaly_bonus * (1.0 + np.log(own_severity))
-            else:
-                dynamic_bonus = self_anomaly_bonus
-            candidate_scores[candidate] *= dynamic_bonus
-        
-        # Store details for debugging/analysis
-        traversal_details[candidate] = {
-            'reachable_anomalies': reachable_anomalies,
-            'is_anomalous': candidate in anomalous_metrics,
-            'own_severity': severity_weights.get(candidate, None),
-            'raw_score': total_score,
-            'final_score': candidate_scores[candidate]
-        }
-    
-    return candidate_scores, traversal_details
-
-
 def score_candidates_upstream(
     anomalies: dict,
     upstream_map: dict,
     edge_weights: dict = None,
     max_depth: int = 3,
     decay: float = 0.6,
-    self_anomaly_bonus: float = 2.0,
-    use_severity_weighting: bool = True
+    self_anomaly_bonus: float = 2.0
 ) -> Tuple[dict, dict]:
     """
     Score candidates by traversing upstream from each anomaly.
@@ -644,22 +536,15 @@ def score_candidates_upstream(
     1. For each anomaly, do BFS upstream (toward potential root causes)
     2. Each visited node accumulates score from all anomalies that reach it
     3. Scores decay with distance and scale with edge weights
-    4. SEVERITY WEIGHTING: Each anomaly's contribution is weighted by |z-score|
-    5. Nodes reachable from MANY severe anomalies get higher scores
-    
-    Severity Weighting (CloudRanger/MonitorRank approach):
-    - Each anomaly contributes score proportional to |z-score|
-    - More severe anomalies have more influence on root cause ranking
-    - Self-anomaly bonus is scaled by candidate's own severity
+    4. Nodes reachable from MANY anomalies naturally get higher scores
     
     Args:
-        anomalies: Dict of detected anomalies {metric: {z_score, value, ...}}
+        anomalies: Dict of detected anomalies
         upstream_map: Dict mapping node -> list of parents
         edge_weights: Dict mapping (parent, child) -> weight
         max_depth: Maximum BFS depth
         decay: Score decay per hop
-        self_anomaly_bonus: Base score multiplier if candidate is anomalous
-        use_severity_weighting: If True, weight by |z-score| (default True)
+        self_anomaly_bonus: Score multiplier if candidate is anomalous
         
     Returns:
         Tuple of (candidate_scores dict, traversal_details dict)
@@ -668,23 +553,10 @@ def score_candidates_upstream(
     candidate_scores = defaultdict(float)
     contribution_details = defaultdict(list)  # Track which anomalies contribute to each candidate
     
-    # Pre-compute severity weights for all anomalies
-    severity_weights = {}
-    for metric, info in anomalies.items():
-        z = info.get('z_score')
-        if z is not None and use_severity_weighting:
-            severity_weights[metric] = max(1.0, abs(z))
-        else:
-            severity_weights[metric] = 1.0
-    
     for anomalous_metric in anomalies.keys():
-        # Get severity weight for this anomaly
-        anomaly_severity = severity_weights.get(anomalous_metric, 1.0)
-        
         # BFS traversal upstream from this anomaly
         visited = set()
-        # Initial score is the anomaly's severity
-        queue = [(anomalous_metric, 0, anomaly_severity)]
+        queue = [(anomalous_metric, 0, 1.0)]
         
         while queue:
             current_node, depth, score = queue.pop(0)
@@ -694,11 +566,10 @@ def score_candidates_upstream(
             
             visited.add(current_node)
             
-            # Accumulate score (already severity-weighted from initial value)
+            # Accumulate score
             candidate_scores[current_node] += score
             contribution_details[current_node].append({
                 'from_anomaly': anomalous_metric,
-                'anomaly_severity': anomaly_severity,
                 'depth': depth,
                 'contribution': score
             })
@@ -713,17 +584,11 @@ def score_candidates_upstream(
                     propagated_score = score * decay * weight
                     queue.append((parent, depth + 1, propagated_score))
     
-    # Apply self-anomaly bonus (scaled by own severity) and convert to regular dict
+    # Apply self-anomaly bonus and convert to regular dict
     final_scores = {}
     for candidate, score in candidate_scores.items():
         if candidate in anomalous_metrics:
-            own_severity = severity_weights.get(candidate, 1.0)
-            # Dynamic bonus: base_bonus * (1 + log(severity)) for smoother scaling
-            if use_severity_weighting and own_severity > 1.0:
-                dynamic_bonus = self_anomaly_bonus * (1.0 + np.log(own_severity))
-            else:
-                dynamic_bonus = self_anomaly_bonus
-            final_scores[candidate] = score * dynamic_bonus
+            final_scores[candidate] = score * self_anomaly_bonus
         else:
             final_scores[candidate] = score
     
@@ -734,7 +599,6 @@ def score_candidates_upstream(
             'contributing_anomalies': contribution_details[candidate],
             'num_anomalies_reached': len(contribution_details[candidate]),
             'is_anomalous': candidate in anomalous_metrics,
-            'own_severity': severity_weights.get(candidate, None),
             'raw_score': candidate_scores[candidate],
             'final_score': final_scores[candidate]
         }
@@ -829,9 +693,6 @@ def load_test_run(test_date: str) -> dict:
 all_results = []
 all_traversal_details = {}
 
-# Get active graphs
-active_graphs = [k for k, v in GRAPHS_TO_EVALUATE.items() if v]
-
 if not active_graphs:
     print("⚠️ No graphs selected for evaluation!")
     print("   Set at least one graph to True in GRAPHS_TO_EVALUATE")
@@ -898,21 +759,11 @@ else:
                 
                 # Score candidates using appropriate traversal method
                 traversal_method = config["traversal_method"]
-                
-                if traversal_method == "downstream":
-                    scores, details = score_candidates_downstream(
-                        anomalies, downstream_map, edge_weights,
-                        max_depth=MAX_DEPTH, decay=DECAY_FACTOR,
-                        self_anomaly_bonus=SELF_ANOMALY_BONUS,
-                        use_severity_weighting=USE_SEVERITY_WEIGHTING
-                    )
-                else:  # upstream
-                    scores, details = score_candidates_upstream(
-                        anomalies, upstream_map, edge_weights,
-                        max_depth=MAX_DEPTH, decay=DECAY_FACTOR,
-                        self_anomaly_bonus=SELF_ANOMALY_BONUS,
-                        use_severity_weighting=USE_SEVERITY_WEIGHTING
-                    )
+                scores, details = score_candidates_upstream(
+                    anomalies, upstream_map, edge_weights,
+                    max_depth=MAX_DEPTH, decay=DECAY_FACTOR,
+                    self_anomaly_bonus=SELF_ANOMALY_BONUS
+                )
                 
                 # Rank candidates
                 ranked = sorted(scores.items(), key=lambda x: x[1], reverse=True)
@@ -963,6 +814,7 @@ else:
 print(f"\n✓ Evaluation complete: {len(all_results)} graph-date combinations evaluated")
 
 # COMMAND ----------
+
 
 # ===========================
 # INDIVIDUAL TEST CASE SUMMARY TABLE
@@ -1131,6 +983,30 @@ else:
 
 # COMMAND ----------
 
+# Check if root causes are in the adjacency maps
+print("raw_null_count_unit_id in upstream_map:", "raw_null_count_unit_id" in upstream_map)
+print("raw_null_count_unit_id in downstream_map:", "raw_null_count_unit_id" in downstream_map)
+print("raw_unique_units in upstream_map:", "raw_unique_units" in upstream_map)
+print("raw_unique_units in downstream_map:", "raw_unique_units" in downstream_map)
+
+# COMMAND ----------
+
+# Check downstream connections
+print("raw_null_count_unit_id children:", downstream_map.get("raw_null_count_unit_id", []))
+print("raw_unique_units children:", downstream_map.get("raw_unique_units", []))
+
+# COMMAND ----------
+
+print("raw_null_count_unit_id is anomaly:", "raw_null_count_unit_id" in anomalies)
+print("raw_unique_units is anomaly:", "raw_unique_units" in anomalies)
+
+# COMMAND ----------
+
+print("raw_null_count_unit_id is anomaly:", "raw_null_count_unit_id" in anomalies)
+print("raw_unique_units is anomaly:", "raw_unique_units" in anomalies)
+
+# COMMAND ----------
+
 # MAGIC %md
 # MAGIC ## Export Results
 
@@ -1172,4 +1048,4 @@ if all_results:
     print("✓ EVALUATION COMPLETE!")
     print("="*70)
 else:
-    print("⚠️ No results to export") 
+    print("⚠️ No results to export")

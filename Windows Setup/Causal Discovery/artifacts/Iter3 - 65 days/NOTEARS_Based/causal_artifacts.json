@@ -1,0 +1,833 @@
+{
+  "pipeline": "NOTEARS_Based",
+  "method": "notears-based",
+  "data_type": "cross-sectional",
+  "status": "SUCCESS",
+  "training_days": 65,
+  "preprocess_meta": {
+    "initial_shape": [
+      67,
+      91
+    ],
+    "missing_fraction": {
+      "bronze_correction_trips_removed": 0.0,
+      "bronze_distance_km_mean": 0.0,
+      "bronze_distance_km_std": 0.0,
+      "bronze_duplicate_rows_removed": 0.0,
+      "bronze_duration_mean": 0.0,
+      "bronze_duration_std": 0.0,
+      "bronze_excessive_daily_events_units": 0.0,
+      "bronze_idle_time_invalid_corrected": 0.0,
+      "bronze_impossible_speed_events": 0.0,
+      "bronze_ingestion_duration_sec": 0.0,
+      "bronze_input_rows": 0.0,
+      "bronze_invalid_avg_speed_rows": 0.0,
+      "bronze_negative_fuel_events": 0.0,
+      "bronze_null_primary_key_rows": 0.0,
+      "bronze_output_rows": 0.0,
+      "bronze_rows_after_rule_filter": 0.0,
+      "bronze_rows_before_rule_filter": 0.0,
+      "bronze_rows_dropped_by_rules": 0.0,
+      "bronze_start_after_end_rows": 0.0,
+      "bronze_survival_rate": 0.0,
+      "bronze_zero_distance_fuel_events": 0.0,
+      "mean_fuel_per_100km": 0.0,
+      "mean_idling_per_100km": 0.0,
+      "p50_fuel_per_100km": 0.0,
+      "p50_idling_per_100km": 0.0,
+      "p95_fuel_per_100km": 0.0,
+      "p95_idling_per_100km": 0.0,
+      "raw_avg_speed_mean": 0.0,
+      "raw_avg_speed_std": 0.0,
+      "raw_distance_mean": 0.0,
+      "raw_distance_std": 0.0,
+      "raw_ingestion_duration_sec": 0.0,
+      "raw_input_record_count": 0.0,
+      "raw_max_trip_end_ts": 0.0,
+      "raw_min_trip_start_ts": 0.0,
+      "raw_null_count_account_id": 0.0,
+      "raw_null_count_avg_speed": 0.0,
+      "raw_null_count_date": 0.0,
+      "raw_null_count_distance": 0.0,
+      "raw_null_count_driver_id": 0.0,
+      "raw_null_count_end": 0.0,
+      "raw_null_count_end_latitude": 0.0,
+      "raw_null_count_end_longitude": 0.0,
+      "raw_null_count_fuel_consumption": 0.0,
+      "raw_null_count_fuel_consumption_ecol": 0.0,
+      "raw_null_count_fuel_consumption_ecor": 0.0,
+      "raw_null_count_fuel_consumption_fms_high": 0.0,
+      "raw_null_count_fuel_consumption_fms_low": 0.0,
+      "raw_null_count_gps_coverage": 0.0,
+      "raw_null_count_hour": 0.0,
+      "raw_null_count_idle_time": 0.0,
+      "raw_null_count_max_speed": 0.0,
+      "raw_null_count_start": 0.0,
+      "raw_null_count_start_latitude": 0.0,
+      "raw_null_count_start_longitude": 0.0,
+      "raw_null_count_trip_type": 0.0,
+      "raw_null_count_unit_id": 0.0,
+      "raw_poor_gps_coverage_count": 0.0,
+      "raw_temporal_coverage_hours": 0.0,
+      "raw_unique_units": 0.0,
+      "silver_avg_speed_imputed": 0.0,
+      "silver_count_after_feature_engineering": 0.0,
+      "silver_count_after_vehicle_info_join": 0.0,
+      "silver_fuel_ecol_available": 0.0,
+      "silver_fuel_ecor_available": 0.0,
+      "silver_fuel_fms_high_available": 0.0,
+      "silver_fuel_fms_low_available": 0.0,
+      "silver_fuel_source_disagreement_count": 0.0,
+      "silver_fuel_subtype_nulls": 0.0,
+      "silver_ingestion_duration_sec": 0.0,
+      "silver_input_data_count": 0.0,
+      "silver_ml_abs_residual_mean": 0.0,
+      "silver_ml_abs_residual_p95": 0.0,
+      "silver_ml_imputation_count": 0.0,
+      "silver_ml_imputed_fuel_mean": 0.0,
+      "silver_ml_imputed_fuel_p95": 0.0,
+      "silver_ml_imputed_fuel_std": 0.0,
+      "silver_ml_large_error_count": 0.0,
+      "silver_ml_percentage_error_mean": 0.0,
+      "silver_ml_prediction_mean": 0.0,
+      "silver_ml_prediction_std": 0.0,
+      "silver_ml_residual_analysis_count": 0.0,
+      "silver_ml_residual_mean": 0.0,
+      "silver_ml_residual_std": 0.0,
+      "silver_null_vehicle_fuel_subtype_rows": 0.0,
+      "silver_null_vehicle_type_rows": 0.0,
+      "silver_output_rows": 0.0,
+      "silver_survival_rate": 0.0,
+      "silver_total_after_join": 0.0,
+      "silver_vehicle_info_join_miss_rate": 0.0,
+      "silver_vehicle_type_nulls": 0.0
+    },
+    "dropped_all_null": [],
+    "dropped_high_missing": [],
+    "dropped_constant": [
+      "bronze_negative_fuel_events",
+      "bronze_null_primary_key_rows",
+      "bronze_zero_distance_fuel_events",
+      "raw_null_count_account_id",
+      "raw_null_count_date",
+      "raw_null_count_end",
+      "raw_null_count_hour",
+      "raw_null_count_start",
+      "raw_null_count_trip_type",
+      "raw_null_count_unit_id",
+      "silver_fuel_source_disagreement_count",
+      "silver_survival_rate"
+    ],
+    "num_missing_indicators": 0,
+    "pre_reduction_shape": [
+      67,
+      79
+    ],
+    "feature_reduction": {
+      "applied": false
+    },
+    "final_shape": [
+      67,
+      79
+    ]
+  },
+  "feature_selection_log": {
+    "initial_features": 79,
+    "target_features": 35,
+    "steps": [
+      {
+        "step": "redundant_removal",
+        "removed_count": 28,
+        "removed_features": [
+          "bronze_duplicate_rows_removed",
+          "bronze_invalid_avg_speed_rows",
+          "bronze_rows_after_rule_filter",
+          "bronze_rows_before_rule_filter",
+          "bronze_rows_dropped_by_rules",
+          "bronze_start_after_end_rows",
+          "raw_null_count_distance",
+          "raw_null_count_driver_id",
+          "raw_null_count_end_latitude",
+          "raw_null_count_end_longitude",
+          "raw_null_count_fuel_consumption",
+          "raw_null_count_fuel_consumption_ecol",
+          "raw_null_count_fuel_consumption_ecor",
+          "raw_null_count_fuel_consumption_fms_high",
+          "raw_null_count_fuel_consumption_fms_low",
+          "raw_null_count_gps_coverage",
+          "raw_null_count_idle_time",
+          "raw_null_count_max_speed",
+          "raw_null_count_start_latitude",
+          "raw_null_count_start_longitude",
+          "raw_poor_gps_coverage_count",
+          "silver_count_after_vehicle_info_join",
+          "silver_input_data_count",
+          "silver_ml_imputation_count",
+          "silver_ml_large_error_count",
+          "silver_ml_residual_analysis_count",
+          "silver_null_vehicle_fuel_subtype_rows",
+          "silver_null_vehicle_type_rows"
+        ],
+        "reason": "structural_redundancy"
+      },
+      {
+        "step": "correlation_pruning",
+        "removed_count": 24,
+        "removed_features": [
+          "raw_input_record_count",
+          "bronze_output_rows",
+          "p50_fuel_per_100km",
+          "p95_fuel_per_100km",
+          "p50_idling_per_100km",
+          "p95_idling_per_100km",
+          "silver_output_rows",
+          "silver_total_after_join",
+          "bronze_input_rows",
+          "raw_temporal_coverage_hours",
+          "silver_count_after_feature_engineering",
+          "silver_fuel_ecor_available",
+          "raw_unique_units",
+          "silver_fuel_fms_low_available",
+          "silver_fuel_subtype_nulls",
+          "raw_null_count_avg_speed",
+          "bronze_correction_trips_removed",
+          "silver_fuel_fms_high_available",
+          "silver_ml_abs_residual_mean",
+          "silver_fuel_ecol_available",
+          "silver_vehicle_type_nulls",
+          "bronze_idle_time_invalid_corrected",
+          "silver_ml_abs_residual_p95",
+          "silver_ml_residual_mean"
+        ],
+        "reason": "correlation > 0.98"
+      }
+    ],
+    "final_features": 27,
+    "total_removed": 52,
+    "reduction_ratio": 0.6582278481012658
+  },
+  "notears_result": {
+    "method": "notears-success",
+    "lambda1": 0.0,
+    "lambda2": 0.0,
+    "w_threshold": null,
+    "max_iter": 100,
+    "n_samples": 67,
+    "n_features": 27,
+    "sample_feature_ratio": 2.4814814814814814,
+    "converged": true,
+    "final_h_value": 9.92053728054998e-09,
+    "optimization_iterations": 49,
+    "raw_edges_found": 36
+  },
+  "edge_stats": {
+    "raw_edges": 36,
+    "removed_by_blacklist": 2,
+    "added_from_whitelist": 6,
+    "final_edges": 40,
+    "edge_type": "directed",
+    "orientation_method": "notears_optimization"
+  },
+  "raw_notears_edges": [
+    {
+      "from": "silver_ml_imputed_fuel_std",
+      "to": "silver_ml_imputed_fuel_p95",
+      "weight": 0.003527908102438795,
+      "abs_weight": 0.003527908102438795,
+      "type": "directed"
+    },
+    {
+      "from": "silver_ml_imputed_fuel_mean",
+      "to": "silver_ml_imputed_fuel_p95",
+      "weight": 0.003527221911375757,
+      "abs_weight": 0.003527221911375757,
+      "type": "directed"
+    },
+    {
+      "from": "silver_ml_imputed_fuel_p95",
+      "to": "silver_ml_prediction_std",
+      "weight": 0.0035090074965591542,
+      "abs_weight": 0.0035090074965591542,
+      "type": "directed"
+    },
+    {
+      "from": "raw_distance_std",
+      "to": "raw_distance_mean",
+      "weight": 0.0035087901568520994,
+      "abs_weight": 0.0035087901568520994,
+      "type": "directed"
+    },
+    {
+      "from": "silver_ml_percentage_error_mean",
+      "to": "silver_ml_imputed_fuel_mean",
+      "weight": 0.003503549811492888,
+      "abs_weight": 0.003503549811492888,
+      "type": "directed"
+    },
+    {
+      "from": "bronze_duration_mean",
+      "to": "bronze_duration_std",
+      "weight": 0.003503036798059652,
+      "abs_weight": 0.003503036798059652,
+      "type": "directed"
+    },
+    {
+      "from": "bronze_excessive_daily_events_units",
+      "to": "silver_avg_speed_imputed",
+      "weight": 0.0035021809211007323,
+      "abs_weight": 0.0035021809211007323,
+      "type": "directed"
+    },
+    {
+      "from": "silver_ml_imputed_fuel_std",
+      "to": "silver_ml_prediction_std",
+      "weight": 0.0035016781051500716,
+      "abs_weight": 0.0035016781051500716,
+      "type": "directed"
+    },
+    {
+      "from": "bronze_distance_km_std",
+      "to": "bronze_distance_km_mean",
+      "weight": 0.003498153046280411,
+      "abs_weight": 0.003498153046280411,
+      "type": "directed"
+    },
+    {
+      "from": "silver_ml_imputed_fuel_mean",
+      "to": "silver_ml_prediction_mean",
+      "weight": 0.003492069602764165,
+      "abs_weight": 0.003492069602764165,
+      "type": "directed"
+    },
+    {
+      "from": "mean_fuel_per_100km",
+      "to": "silver_avg_speed_imputed",
+      "weight": 0.003468982267890748,
+      "abs_weight": 0.003468982267890748,
+      "type": "directed"
+    },
+    {
+      "from": "silver_ml_imputed_fuel_std",
+      "to": "silver_ml_imputed_fuel_mean",
+      "weight": 0.00346499107870815,
+      "abs_weight": 0.00346499107870815,
+      "type": "directed"
+    },
+    {
+      "from": "silver_ml_imputed_fuel_mean",
+      "to": "silver_ml_prediction_std",
+      "weight": 0.003453094917564053,
+      "abs_weight": 0.003453094917564053,
+      "type": "directed"
+    },
+    {
+      "from": "silver_ml_imputed_fuel_p95",
+      "to": "silver_ml_prediction_mean",
+      "weight": 0.0034483400382432526,
+      "abs_weight": 0.0034483400382432526,
+      "type": "directed"
+    },
+    {
+      "from": "silver_ml_prediction_std",
+      "to": "silver_ml_prediction_mean",
+      "weight": 0.0034414648193980745,
+      "abs_weight": 0.0034414648193980745,
+      "type": "directed"
+    },
+    {
+      "from": "silver_ml_percentage_error_mean",
+      "to": "silver_ml_imputed_fuel_p95",
+      "weight": 0.0034158902941866364,
+      "abs_weight": 0.0034158902941866364,
+      "type": "directed"
+    },
+    {
+      "from": "mean_fuel_per_100km",
+      "to": "bronze_excessive_daily_events_units",
+      "weight": 0.003397722640388795,
+      "abs_weight": 0.003397722640388795,
+      "type": "directed"
+    },
+    {
+      "from": "silver_ml_percentage_error_mean",
+      "to": "silver_ml_prediction_mean",
+      "weight": 0.003365459312274731,
+      "abs_weight": 0.003365459312274731,
+      "type": "directed"
+    },
+    {
+      "from": "silver_ml_percentage_error_mean",
+      "to": "silver_ml_imputed_fuel_std",
+      "weight": 0.00333758993591278,
+      "abs_weight": 0.00333758993591278,
+      "type": "directed"
+    },
+    {
+      "from": "silver_ml_imputed_fuel_std",
+      "to": "silver_ml_prediction_mean",
+      "weight": 0.003310953011863348,
+      "abs_weight": 0.003310953011863348,
+      "type": "directed"
+    },
+    {
+      "from": "silver_ml_percentage_error_mean",
+      "to": "silver_ml_prediction_std",
+      "weight": 0.003256086617880192,
+      "abs_weight": 0.003256086617880192,
+      "type": "directed"
+    },
+    {
+      "from": "raw_max_trip_end_ts",
+      "to": "bronze_distance_km_mean",
+      "weight": 0.0032222916969538136,
+      "abs_weight": 0.0032222916969538136,
+      "type": "directed"
+    },
+    {
+      "from": "bronze_impossible_speed_events",
+      "to": "silver_avg_speed_imputed",
+      "weight": 0.0032058695908403047,
+      "abs_weight": 0.0032058695908403047,
+      "type": "directed"
+    },
+    {
+      "from": "raw_max_trip_end_ts",
+      "to": "silver_vehicle_info_join_miss_rate",
+      "weight": 0.003203005304263179,
+      "abs_weight": 0.003203005304263179,
+      "type": "directed"
+    },
+    {
+      "from": "silver_ml_residual_std",
+      "to": "silver_ml_prediction_mean",
+      "weight": 0.0031988779079050894,
+      "abs_weight": 0.0031988779079050894,
+      "type": "directed"
+    },
+    {
+      "from": "raw_avg_speed_mean",
+      "to": "raw_distance_mean",
+      "weight": -0.003182780515630466,
+      "abs_weight": 0.003182780515630466,
+      "type": "directed"
+    },
+    {
+      "from": "raw_ingestion_duration_sec",
+      "to": "silver_ingestion_duration_sec",
+      "weight": 0.0031700300950831123,
+      "abs_weight": 0.0031700300950831123,
+      "type": "directed"
+    },
+    {
+      "from": "bronze_distance_km_std",
+      "to": "raw_max_trip_end_ts",
+      "weight": 0.0031386536304526193,
+      "abs_weight": 0.0031386536304526193,
+      "type": "directed"
+    },
+    {
+      "from": "bronze_ingestion_duration_sec",
+      "to": "bronze_impossible_speed_events",
+      "weight": 0.0031298372809092302,
+      "abs_weight": 0.0031298372809092302,
+      "type": "directed"
+    },
+    {
+      "from": "bronze_impossible_speed_events",
+      "to": "bronze_excessive_daily_events_units",
+      "weight": 0.00310775932647825,
+      "abs_weight": 0.00310775932647825,
+      "type": "directed"
+    },
+    {
+      "from": "bronze_impossible_speed_events",
+      "to": "mean_fuel_per_100km",
+      "weight": 0.003086079696589908,
+      "abs_weight": 0.003086079696589908,
+      "type": "directed"
+    },
+    {
+      "from": "raw_distance_std",
+      "to": "raw_avg_speed_mean",
+      "weight": -0.0030695379655385968,
+      "abs_weight": 0.0030695379655385968,
+      "type": "directed"
+    },
+    {
+      "from": "silver_ml_imputed_fuel_mean",
+      "to": "silver_ml_residual_std",
+      "weight": 0.0030543838153412966,
+      "abs_weight": 0.0030543838153412966,
+      "type": "directed"
+    },
+    {
+      "from": "silver_ml_residual_std",
+      "to": "bronze_excessive_daily_events_units",
+      "weight": 0.0030289813136282926,
+      "abs_weight": 0.0030289813136282926,
+      "type": "directed"
+    },
+    {
+      "from": "mean_fuel_per_100km",
+      "to": "silver_ml_residual_std",
+      "weight": 0.0030227706168586056,
+      "abs_weight": 0.0030227706168586056,
+      "type": "directed"
+    },
+    {
+      "from": "silver_ml_percentage_error_mean",
+      "to": "silver_ml_residual_std",
+      "weight": 0.0030220883259015324,
+      "abs_weight": 0.0030220883259015324,
+      "type": "directed"
+    }
+  ],
+  "filtered_edges": [
+    {
+      "from": "silver_ml_imputed_fuel_std",
+      "to": "silver_ml_imputed_fuel_p95",
+      "weight": 0.003527908102438795,
+      "abs_weight": 0.003527908102438795,
+      "type": "directed"
+    },
+    {
+      "from": "silver_ml_imputed_fuel_mean",
+      "to": "silver_ml_imputed_fuel_p95",
+      "weight": 0.003527221911375757,
+      "abs_weight": 0.003527221911375757,
+      "type": "directed"
+    },
+    {
+      "from": "silver_ml_imputed_fuel_p95",
+      "to": "silver_ml_prediction_std",
+      "weight": 0.0035090074965591542,
+      "abs_weight": 0.0035090074965591542,
+      "type": "directed"
+    },
+    {
+      "from": "raw_distance_std",
+      "to": "raw_distance_mean",
+      "weight": 0.0035087901568520994,
+      "abs_weight": 0.0035087901568520994,
+      "type": "directed"
+    },
+    {
+      "from": "silver_ml_percentage_error_mean",
+      "to": "silver_ml_imputed_fuel_mean",
+      "weight": 0.003503549811492888,
+      "abs_weight": 0.003503549811492888,
+      "type": "directed"
+    },
+    {
+      "from": "bronze_duration_mean",
+      "to": "bronze_duration_std",
+      "weight": 0.003503036798059652,
+      "abs_weight": 0.003503036798059652,
+      "type": "directed"
+    },
+    {
+      "from": "bronze_excessive_daily_events_units",
+      "to": "silver_avg_speed_imputed",
+      "weight": 0.0035021809211007323,
+      "abs_weight": 0.0035021809211007323,
+      "type": "directed"
+    },
+    {
+      "from": "silver_ml_imputed_fuel_std",
+      "to": "silver_ml_prediction_std",
+      "weight": 0.0035016781051500716,
+      "abs_weight": 0.0035016781051500716,
+      "type": "directed"
+    },
+    {
+      "from": "bronze_distance_km_std",
+      "to": "bronze_distance_km_mean",
+      "weight": 0.003498153046280411,
+      "abs_weight": 0.003498153046280411,
+      "type": "directed"
+    },
+    {
+      "from": "silver_ml_imputed_fuel_mean",
+      "to": "silver_ml_prediction_mean",
+      "weight": 0.003492069602764165,
+      "abs_weight": 0.003492069602764165,
+      "type": "directed"
+    },
+    {
+      "from": "mean_fuel_per_100km",
+      "to": "silver_avg_speed_imputed",
+      "weight": 0.003468982267890748,
+      "abs_weight": 0.003468982267890748,
+      "type": "directed"
+    },
+    {
+      "from": "silver_ml_imputed_fuel_std",
+      "to": "silver_ml_imputed_fuel_mean",
+      "weight": 0.00346499107870815,
+      "abs_weight": 0.00346499107870815,
+      "type": "directed"
+    },
+    {
+      "from": "silver_ml_imputed_fuel_mean",
+      "to": "silver_ml_prediction_std",
+      "weight": 0.003453094917564053,
+      "abs_weight": 0.003453094917564053,
+      "type": "directed"
+    },
+    {
+      "from": "silver_ml_imputed_fuel_p95",
+      "to": "silver_ml_prediction_mean",
+      "weight": 0.0034483400382432526,
+      "abs_weight": 0.0034483400382432526,
+      "type": "directed"
+    },
+    {
+      "from": "silver_ml_prediction_std",
+      "to": "silver_ml_prediction_mean",
+      "weight": 0.0034414648193980745,
+      "abs_weight": 0.0034414648193980745,
+      "type": "directed"
+    },
+    {
+      "from": "silver_ml_percentage_error_mean",
+      "to": "silver_ml_imputed_fuel_p95",
+      "weight": 0.0034158902941866364,
+      "abs_weight": 0.0034158902941866364,
+      "type": "directed"
+    },
+    {
+      "from": "mean_fuel_per_100km",
+      "to": "bronze_excessive_daily_events_units",
+      "weight": 0.003397722640388795,
+      "abs_weight": 0.003397722640388795,
+      "type": "directed"
+    },
+    {
+      "from": "silver_ml_percentage_error_mean",
+      "to": "silver_ml_prediction_mean",
+      "weight": 0.003365459312274731,
+      "abs_weight": 0.003365459312274731,
+      "type": "directed"
+    },
+    {
+      "from": "silver_ml_percentage_error_mean",
+      "to": "silver_ml_imputed_fuel_std",
+      "weight": 0.00333758993591278,
+      "abs_weight": 0.00333758993591278,
+      "type": "directed"
+    },
+    {
+      "from": "silver_ml_imputed_fuel_std",
+      "to": "silver_ml_prediction_mean",
+      "weight": 0.003310953011863348,
+      "abs_weight": 0.003310953011863348,
+      "type": "directed"
+    },
+    {
+      "from": "silver_ml_percentage_error_mean",
+      "to": "silver_ml_prediction_std",
+      "weight": 0.003256086617880192,
+      "abs_weight": 0.003256086617880192,
+      "type": "directed"
+    },
+    {
+      "from": "raw_max_trip_end_ts",
+      "to": "bronze_distance_km_mean",
+      "weight": 0.0032222916969538136,
+      "abs_weight": 0.0032222916969538136,
+      "type": "directed"
+    },
+    {
+      "from": "bronze_impossible_speed_events",
+      "to": "silver_avg_speed_imputed",
+      "weight": 0.0032058695908403047,
+      "abs_weight": 0.0032058695908403047,
+      "type": "directed"
+    },
+    {
+      "from": "raw_max_trip_end_ts",
+      "to": "silver_vehicle_info_join_miss_rate",
+      "weight": 0.003203005304263179,
+      "abs_weight": 0.003203005304263179,
+      "type": "directed"
+    },
+    {
+      "from": "silver_ml_residual_std",
+      "to": "silver_ml_prediction_mean",
+      "weight": 0.0031988779079050894,
+      "abs_weight": 0.0031988779079050894,
+      "type": "directed"
+    },
+    {
+      "from": "raw_avg_speed_mean",
+      "to": "raw_distance_mean",
+      "weight": -0.003182780515630466,
+      "abs_weight": 0.003182780515630466,
+      "type": "directed"
+    },
+    {
+      "from": "raw_ingestion_duration_sec",
+      "to": "silver_ingestion_duration_sec",
+      "weight": 0.0031700300950831123,
+      "abs_weight": 0.0031700300950831123,
+      "type": "directed"
+    },
+    {
+      "from": "bronze_ingestion_duration_sec",
+      "to": "bronze_impossible_speed_events",
+      "weight": 0.0031298372809092302,
+      "abs_weight": 0.0031298372809092302,
+      "type": "directed"
+    },
+    {
+      "from": "bronze_impossible_speed_events",
+      "to": "bronze_excessive_daily_events_units",
+      "weight": 0.00310775932647825,
+      "abs_weight": 0.00310775932647825,
+      "type": "directed"
+    },
+    {
+      "from": "bronze_impossible_speed_events",
+      "to": "mean_fuel_per_100km",
+      "weight": 0.003086079696589908,
+      "abs_weight": 0.003086079696589908,
+      "type": "directed"
+    },
+    {
+      "from": "raw_distance_std",
+      "to": "raw_avg_speed_mean",
+      "weight": -0.0030695379655385968,
+      "abs_weight": 0.0030695379655385968,
+      "type": "directed"
+    },
+    {
+      "from": "silver_ml_imputed_fuel_mean",
+      "to": "silver_ml_residual_std",
+      "weight": 0.0030543838153412966,
+      "abs_weight": 0.0030543838153412966,
+      "type": "directed"
+    },
+    {
+      "from": "mean_fuel_per_100km",
+      "to": "silver_ml_residual_std",
+      "weight": 0.0030227706168586056,
+      "abs_weight": 0.0030227706168586056,
+      "type": "directed"
+    },
+    {
+      "from": "silver_ml_percentage_error_mean",
+      "to": "silver_ml_residual_std",
+      "weight": 0.0030220883259015324,
+      "abs_weight": 0.0030220883259015324,
+      "type": "directed"
+    },
+    {
+      "from": "raw_distance_mean",
+      "to": "bronze_distance_km_mean",
+      "weight": 0.0021349787290654686,
+      "abs_weight": 0.0021349787290654686,
+      "type": "directed",
+      "source": "whitelist_recovered"
+    },
+    {
+      "from": "raw_avg_speed_mean",
+      "to": "bronze_duration_mean",
+      "weight": 0.0023127158145145447,
+      "abs_weight": 0.0023127158145145447,
+      "type": "directed",
+      "source": "whitelist_recovered"
+    },
+    {
+      "from": "bronze_distance_km_mean",
+      "to": "silver_avg_speed_imputed",
+      "weight": -0.0022214287984392168,
+      "abs_weight": 0.0022214287984392168,
+      "type": "directed",
+      "source": "whitelist_recovered"
+    },
+    {
+      "from": "bronze_duration_mean",
+      "to": "silver_avg_speed_imputed",
+      "weight": -0.0016621648575836753,
+      "abs_weight": 0.0016621648575836753,
+      "type": "directed",
+      "source": "whitelist_recovered"
+    },
+    {
+      "from": "bronze_distance_km_mean",
+      "to": "mean_fuel_per_100km",
+      "weight": -0.0020473446728208784,
+      "abs_weight": 0.0020473446728208784,
+      "type": "directed",
+      "source": "whitelist_recovered"
+    },
+    {
+      "from": "bronze_distance_km_mean",
+      "to": "mean_idling_per_100km",
+      "weight": -0.001548258430901749,
+      "abs_weight": 0.001548258430901749,
+      "type": "directed",
+      "source": "whitelist_recovered"
+    }
+  ],
+  "blacklist_filtering": {
+    "blacklist_edges_applicable": 206,
+    "edges_removed": [
+      [
+        "bronze_distance_km_std",
+        "raw_max_trip_end_ts"
+      ],
+      [
+        "silver_ml_residual_std",
+        "bronze_excessive_daily_events_units"
+      ]
+    ],
+    "whitelist_edges_added": 6,
+    "whitelist_recovered_from_W_raw": 6,
+    "whitelist_estimated_via_ols": 0,
+    "whitelist_details": [
+      [
+        "raw_distance_mean",
+        "bronze_distance_km_mean",
+        "whitelist_recovered",
+        0.0021349787290654686
+      ],
+      [
+        "raw_avg_speed_mean",
+        "bronze_duration_mean",
+        "whitelist_recovered",
+        0.0023127158145145447
+      ],
+      [
+        "bronze_distance_km_mean",
+        "silver_avg_speed_imputed",
+        "whitelist_recovered",
+        -0.0022214287984392168
+      ],
+      [
+        "bronze_duration_mean",
+        "silver_avg_speed_imputed",
+        "whitelist_recovered",
+        -0.0016621648575836753
+      ],
+      [
+        "bronze_distance_km_mean",
+        "mean_fuel_per_100km",
+        "whitelist_recovered",
+        -0.0020473446728208784
+      ],
+      [
+        "bronze_distance_km_mean",
+        "mean_idling_per_100km",
+        "whitelist_recovered",
+        -0.001548258430901749
+      ]
+    ]
+  },
+  "final_graph_stats": {
+    "total_edges": 40,
+    "nodes_with_parents": 18,
+    "nodes_with_children": 18,
+    "is_dag": true
+  }
+}

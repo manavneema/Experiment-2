@@ -65,10 +65,12 @@ TOTAL_RUNS = 107
 FAULT_CUTOFF_DATE = "2025-12-01"
 
 # ===========================================
-# KEY CHANGE 1: HIGHER PC ALPHA (more edges)
+# KEY CHANGE 1: HIGHER PC ALPHA (EXPERIMENTAL)
 # ===========================================
+# Grid search over multiple alpha values; all results exported for sensitivity analysis
 PC_ALPHA_CANDIDATES = [0.10, 0.12, 0.15]  # Was [0.05, 0.07, 0.10]
 PC_INDEP_TEST = 'fisherz'
+EXPORT_ALL_PC_ALPHA_RESULTS = True  # Export results for each alpha, not just best
 
 # NOTEARS parameters
 NOTEARS_LAMBDA_CANDIDATES = [0.01, 0.02, 0.05]
@@ -76,10 +78,13 @@ NOTEARS_MAX_ITER = 100
 NOTEARS_H_TOL = 1e-8
 
 # ===========================================
-# KEY CHANGE 2: LOWER BOOTSTRAP THRESHOLD
+# KEY CHANGE 2: DUAL BOOTSTRAP THRESHOLDS
 # ===========================================
+# Generate TWO graphs: Conservative (0.60) and Exploratory (0.40)
+# Both computed but separately evaluated for thesis ablation
 BOOTSTRAP_RESAMPLES = 100
-BOOTSTRAP_EDGE_THRESHOLD = 0.40  # Was 0.60 - now more inclusive
+BOOTSTRAP_THRESHOLDS = [0.60, 0.40]  # [PRIMARY_CONSERVATIVE, EXPLORATORY]
+BOOTSTRAP_EDGE_THRESHOLD = 0.40  # Default for pipeline (exploratory)
 
 # ===========================================
 # KEY CHANGE 3: LESS AGGRESSIVE PREPROCESSING
@@ -88,9 +93,12 @@ CORRELATION_THRESHOLD = 0.95  # Was 0.99 - still remove near-duplicates
 VARIANCE_THRESHOLD = 0.0  # Only drop truly constant
 
 # ===========================================
-# KEY CHANGE 4: ISOLATION RECOVERY PARAMETERS
+# KEY CHANGE 4: ISOLATION RECOVERY - OPTIONAL & SEPARATED
 # ===========================================
-ISOLATION_RECOVERY_ENABLED = True
+# Generate graphs WITH and WITHOUT isolation recovery
+# Track marginal contribution of recovery mechanism for ablation study
+ISOLATION_RECOVERY_ENABLED = True  # Main graph includes recovery
+GENERATE_ABLATION_VARIANTS = True  # Also export graph without recovery for comparison
 ISOLATION_MIN_CORRELATION = 0.25  # Min |correlation| to add edge
 ISOLATION_MAX_EDGES = 2  # Max edges to add per isolated node
 
@@ -1057,8 +1065,8 @@ def run_notears_on_skeleton(df, skeleton_edges, lambda_candidates, columns):
 
 def bootstrap_stability(df, skeleton_edges, notears_lambda, columns, 
                         n_resamples=100, edge_threshold=0.40):
-    """Bootstrap edge stability with LOWER threshold."""
-    print(f"Bootstrap Stability ({n_resamples} resamples, threshold={edge_threshold})")
+    """Bootstrap edge stability with configurable thresholds."""
+    print(f"Bootstrap Stability ({n_resamples} resamples, computing for thresholds={[0.60, 0.40]})")
     
     n_samples, n_features = df.shape
     col_to_idx = {col: idx for idx, col in enumerate(columns)}
@@ -1101,34 +1109,42 @@ def bootstrap_stability(df, skeleton_edges, notears_lambda, columns,
         except:
             continue
     
-    stable_edges = []
+    # Compute results for BOTH thresholds
+    results_by_threshold = {}
     stability_scores = {}
     
     for edge_key, count in edge_counts.items():
         frequency = count / n_resamples
         stability_scores[edge_key] = frequency
+    
+    # Generate edges for each threshold
+    for threshold in [0.60, 0.40]:
+        stable_edges = []
         
-        if frequency >= edge_threshold:
-            weights = edge_weights[edge_key]
-            avg_weight = np.mean(weights)
-            
-            stable_edges.append({
-                'from': edge_key[0],
-                'to': edge_key[1],
-                'weight': float(avg_weight),
-                'abs_weight': float(abs(avg_weight)),
-                'bootstrap_frequency': float(frequency),
-                'source': 'bootstrap_stable'
-            })
+        for edge_key, frequency in stability_scores.items():
+            if frequency >= threshold:
+                weights = edge_weights[edge_key]
+                avg_weight = np.mean(weights)
+                
+                stable_edges.append({
+                    'from': edge_key[0],
+                    'to': edge_key[1],
+                    'weight': float(avg_weight),
+                    'abs_weight': float(abs(avg_weight)),
+                    'bootstrap_frequency': float(frequency),
+                    'source': 'bootstrap_stable'
+                })
+        
+        stable_edges = sorted(stable_edges, key=lambda x: (-x['bootstrap_frequency'], -x['abs_weight']))
+        results_by_threshold[threshold] = stable_edges
+        print(f"✓ Stable edges (freq ≥ {threshold}): {len(stable_edges)}")
     
-    stable_edges = sorted(stable_edges, key=lambda x: (-x['bootstrap_frequency'], -x['abs_weight']))
-    
-    print(f"\n✓ Stable edges (freq ≥ {edge_threshold}): {len(stable_edges)}")
     return {
-        'stable_edges': stable_edges,
+        'stable_edges_0_60': results_by_threshold[0.60],  # Conservative
+        'stable_edges_0_40': results_by_threshold[0.40],  # Exploratory
         'stability_scores': stability_scores,
         'n_resamples': n_resamples,
-        'threshold': edge_threshold,
+        'thresholds': [0.60, 0.40],
         'total_edges_seen': len(edge_counts)
     }
 
@@ -1409,7 +1425,14 @@ bootstrap_result = bootstrap_stability(
     edge_threshold=BOOTSTRAP_EDGE_THRESHOLD
 )
 
-stable_edges = bootstrap_result['stable_edges']
+# Extract both thresholds for ablation
+stable_edges_0_60 = bootstrap_result['stable_edges_0_60']  # Conservative
+stable_edges_0_40 = bootstrap_result['stable_edges_0_40']  # Exploratory (default)
+stable_edges = stable_edges_0_40  # Use exploratory as default
+
+print(f"\nBootstrap Summary:")
+print(f"  Conservative (0.60): {len(stable_edges_0_60)} edges")
+print(f"  Exploratory (0.40): {len(stable_edges_0_40)} edges")
 
 # =====================
 # PHASE 8: REFINEMENT
@@ -1593,6 +1616,71 @@ upstream_map, downstream_map = build_adjacency_maps(final_edges)
 
 dbutils.fs.mkdirs(pipeline_path)
 
+# =====================
+# ABLATION VARIANTS
+# =====================
+print("\n[ABLATION ANALYSIS] Generating comparison graphs...")
+
+# VARIANT A: Conservative (Bootstrap 0.60, No Isolation Recovery)
+print("\n[Variant A] Conservative Graph (Bootstrap 0.60 + No Recovery)...")
+conservative_edges, conservative_removed = apply_blacklist(stable_edges_0_60, blacklist_set)
+existing_set_conservative = set((e['from'], e['to']) for e in conservative_edges)
+conservative_edges, conservative_patterns = add_pattern_priors(
+    conservative_edges, pattern_priors, preprocessed_df, existing_set_conservative, blacklist_set
+)
+is_dag_conservative, _ = validate_dag(conservative_edges)
+conservative_connected = set()
+for edge in conservative_edges:
+    conservative_connected.add(edge['from'])
+    conservative_connected.add(edge['to'])
+conservative_isolated = set(columns) - conservative_connected
+
+print(f"  Conservative graph: {len(conservative_edges)} edges, {len(conservative_connected)}/{len(columns)} connected")
+
+# VARIANT B: Exploratory (Bootstrap 0.40, With Isolation Recovery) - this is final_edges
+exploratory_edges = final_edges
+exploratory_connected = set()
+for edge in exploratory_edges:
+    exploratory_connected.add(edge['from'])
+    exploratory_connected.add(edge['to'])
+exploratory_isolated = set(columns) - exploratory_connected
+
+print(f"  Exploratory graph: {len(exploratory_edges)} edges, {len(exploratory_connected)}/{len(columns)} connected")
+
+# Ablation summary
+ablation_summary = {
+    "conservative_graph": {
+        "bootstrap_threshold": 0.60,
+        "isolation_recovery": False,
+        "n_edges": len(conservative_edges),
+        "n_connected": len(conservative_connected),
+        "n_isolated": len(conservative_isolated),
+        "recovery_gain": 0
+    },
+    "exploratory_graph": {
+        "bootstrap_threshold": 0.40,
+        "isolation_recovery": True,
+        "n_edges": len(exploratory_edges),
+        "n_connected": len(exploratory_connected),
+        "n_isolated": len(exploratory_isolated),
+        "recovery_gain": len(exploratory_edges) - len(conservative_edges)
+    },
+    "bootstrap_sensitivity": {
+        "edges_gained_0_40_vs_0_60": len(stable_edges_0_40) - len(stable_edges_0_60),
+        "percent_increase": round(100 * (len(stable_edges_0_40) - len(stable_edges_0_60)) / len(stable_edges_0_60), 1) if len(stable_edges_0_60) > 0 else 0
+    },
+    "alpha_sensitivity": {
+        "pc_alpha_candidates": PC_ALPHA_CANDIDATES,
+        "selected_alpha": pc_result.get("alpha"),
+        "note": "All PC alpha results exported separately for sensitivity analysis"
+    }
+}
+
+print(f"\n[ABLATION SUMMARY]")
+print(f"  Bootstrap 0.60 → 0.40: +{ablation_summary['bootstrap_sensitivity']['edges_gained_0_40_vs_0_60']} edges ({ablation_summary['bootstrap_sensitivity']['percent_increase']}%)")
+print(f"  Isolation Recovery adds: +{ablation_summary['exploratory_graph']['recovery_gain']} edges")
+print(f"  Coverage improvement: {len(conservative_isolated)} isolated → {len(exploratory_isolated)} isolated")
+
 # Core artifacts
 artifacts = {
     "pipeline": PIPELINE_NAME,
@@ -1602,9 +1690,10 @@ artifacts = {
     "created_at": datetime.utcnow().isoformat(),
     "config": {
         "pc_alpha_candidates": PC_ALPHA_CANDIDATES,
-        "bootstrap_threshold": BOOTSTRAP_EDGE_THRESHOLD,
+        "bootstrap_thresholds": [0.60, 0.40],
+        "isolation_recovery_enabled": ISOLATION_RECOVERY_ENABLED,
+        "generate_ablation_variants": GENERATE_ABLATION_VARIANTS,
         "tier_jump_threshold": TIER_JUMP_THRESHOLD,
-        "isolation_recovery": ISOLATION_RECOVERY_ENABLED,
         "isolation_min_correlation": ISOLATION_MIN_CORRELATION,
         "normalize_weights": NORMALIZE_WEIGHTS_BY_SOURCE,
         "preserve_bidirectional": PRESERVE_BIDIRECTIONAL_EDGES,
@@ -1621,6 +1710,8 @@ artifacts = {
     "pc_result": {
         "method": pc_result["method"],
         "alpha_selected": pc_result.get("alpha"),
+        "alpha_candidates": PC_ALPHA_CANDIDATES,
+        "all_alpha_results": pc_result.get("all_results"),  # All alpha results for sensitivity
         "n_skeleton_edges": len(skeleton_edges)
     },
     "notears_result": {
@@ -1629,9 +1720,13 @@ artifacts = {
         "n_weighted_edges": len(weighted_edges)
     },
     "bootstrap_result": {
-        "n_stable_edges": len(stable_edges),
-        "threshold": BOOTSTRAP_EDGE_THRESHOLD
+        "n_resamples": BOOTSTRAP_RESAMPLES,
+        "thresholds": [0.60, 0.40],
+        "edges_0_60_conservative": len(stable_edges_0_60),
+        "edges_0_40_exploratory": len(stable_edges_0_40),
+        "total_edges_seen": bootstrap_result.get('total_edges_seen')
     },
+    "ablation_analysis": ablation_summary,
     "refinement": {
         "n_removed_by_blacklist": len(removed),
         "n_pattern_priors_added": len(added_patterns),
@@ -1696,3 +1791,4 @@ print(f"\nFinal Graph Stats:")
 print(f"  - Edges: {len(final_edges)}")
 print(f"  - Coverage: {len(connected)/len(columns)*100:.1f}%")
 print(f"  - Isolated: {len(isolated_final)}")
+

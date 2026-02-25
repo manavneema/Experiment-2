@@ -1,0 +1,96 @@
+{
+  "high_out_degree_hubs": [
+    {
+      "node": "bronze_distance_km_mean",
+      "out_degree": 12,
+      "in_degree": 0
+    },
+    {
+      "node": "bronze_duration_mean",
+      "out_degree": 9,
+      "in_degree": 0
+    },
+    {
+      "node": "silver_ml_prediction_mean",
+      "out_degree": 3,
+      "in_degree": 0
+    },
+    {
+      "node": "bronze_invalid_avg_speed_rows",
+      "out_degree": 3,
+      "in_degree": 4
+    },
+    {
+      "node": "silver_vehicle_type_nulls",
+      "out_degree": 2,
+      "in_degree": 2
+    },
+    {
+      "node": "raw_max_trip_end_ts",
+      "out_degree": 2,
+      "in_degree": 1
+    },
+    {
+      "node": "bronze_excessive_daily_events_units",
+      "out_degree": 2,
+      "in_degree": 2
+    },
+    {
+      "node": "silver_ml_large_error_count",
+      "out_degree": 2,
+      "in_degree": 1
+    },
+    {
+      "node": "raw_null_count_avg_speed",
+      "out_degree": 2,
+      "in_degree": 2
+    },
+    {
+      "node": "bronze_rows_dropped_by_rules",
+      "out_degree": 2,
+      "in_degree": 2
+    }
+  ],
+  "sink_nodes": [
+    {
+      "node": "silver_vehicle_info_join_miss_rate",
+      "in_degree": 3
+    },
+    {
+      "node": "silver_avg_speed_imputed",
+      "in_degree": 3
+    },
+    {
+      "node": "raw_avg_speed_std",
+      "in_degree": 3
+    },
+    {
+      "node": "silver_ml_prediction_std",
+      "in_degree": 2
+    },
+    {
+      "node": "silver_ml_residual_std",
+      "in_degree": 2
+    },
+    {
+      "node": "bronze_idle_time_invalid_corrected",
+      "in_degree": 2
+    },
+    {
+      "node": "raw_null_count_max_speed",
+      "in_degree": 2
+    },
+    {
+      "node": "silver_ml_percentage_error_mean",
+      "in_degree": 1
+    },
+    {
+      "node": "raw_null_count_start",
+      "in_degree": 1
+    },
+    {
+      "node": "raw_distance_std",
+      "in_degree": 1
+    }
+  ]
+}
