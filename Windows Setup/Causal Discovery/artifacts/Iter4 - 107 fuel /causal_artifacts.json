@@ -1,0 +1,1986 @@
+{
+  "pipeline": "Hybrid_PC_NOTEARS_Bootstrap_v3",
+  "method": "hybrid_pc_notears_bootstrap_v3_scalable",
+  "version": "v3",
+  "status": "SUCCESS",
+  "created_at": "2026-02-25T16:13:19.437604",
+  "config": {
+    "pc_alpha_candidates": [
+      0.1,
+      0.12,
+      0.15
+    ],
+    "bootstrap_thresholds": [
+      0.6,
+      0.4
+    ],
+    "isolation_recovery_enabled": true,
+    "generate_ablation_variants": true,
+    "tier_jump_threshold": 2,
+    "isolation_min_correlation": 0.25,
+    "normalize_weights": false,
+    "preserve_bidirectional": false,
+    "bidirectional_threshold": 0.5,
+    "include_degree_metadata": true
+  },
+  "data_info": {
+    "n_fault_dates": 42,
+    "n_clean_dates": 67,
+    "fault_dates": [
+      "2025-10-20",
+      "2025-10-21",
+      "2025-10-22",
+      "2025-10-23",
+      "2025-10-24",
+      "2025-10-25",
+      "2025-10-26",
+      "2025-10-27",
+      "2025-10-28",
+      "2025-10-29",
+      "2025-10-30",
+      "2025-10-31",
+      "2025-11-01",
+      "2025-11-02",
+      "2025-11-03",
+      "2025-11-04",
+      "2025-11-05",
+      "2025-11-06",
+      "2025-11-07",
+      "2025-11-08",
+      "2025-11-09",
+      "2025-11-10",
+      "2025-11-11",
+      "2025-11-12",
+      "2025-11-13",
+      "2025-11-14",
+      "2025-11-15",
+      "2025-11-16",
+      "2025-11-17",
+      "2025-11-18",
+      "2025-11-19",
+      "2025-11-20",
+      "2025-11-21",
+      "2025-11-22",
+      "2025-11-23",
+      "2025-11-24",
+      "2025-11-25",
+      "2025-11-26",
+      "2025-11-27",
+      "2025-11-28",
+      "2025-11-29",
+      "2025-11-30"
+    ],
+    "clean_dates": [
+      "2025-12-01",
+      "2025-12-02",
+      "2025-12-03",
+      "2025-12-04",
+      "2025-12-05",
+      "2025-12-06",
+      "2025-12-07",
+      "2025-12-08",
+      "2025-12-09",
+      "2025-12-10",
+      "2025-12-11",
+      "2025-12-12",
+      "2025-12-13",
+      "2025-12-14",
+      "2025-12-15",
+      "2025-12-16",
+      "2025-12-17",
+      "2025-12-18",
+      "2025-12-19",
+      "2025-12-20",
+      "2025-12-21",
+      "2025-12-22",
+      "2025-12-23",
+      "2025-12-24",
+      "2025-12-25",
+      "2025-12-26",
+      "2025-12-27",
+      "2025-12-28",
+      "2025-12-29",
+      "2025-12-30",
+      "2025-12-31",
+      "2026-01-01",
+      "2026-01-02",
+      "2026-01-03",
+      "2026-01-04",
+      "2026-01-05",
+      "2026-01-06",
+      "2026-01-07",
+      "2026-01-08",
+      "2026-01-09",
+      "2026-01-10",
+      "2026-01-11",
+      "2026-01-12",
+      "2026-01-13",
+      "2026-01-14",
+      "2026-01-15",
+      "2026-01-16",
+      "2026-01-17",
+      "2026-01-18",
+      "2026-01-19",
+      "2026-01-20",
+      "2026-01-21",
+      "2026-01-22",
+      "2026-01-23",
+      "2026-01-24",
+      "2026-01-25",
+      "2026-01-26",
+      "2026-01-27",
+      "2026-01-28",
+      "2026-01-29",
+      "2026-01-30",
+      "2026-01-31",
+      "2026-02-01",
+      "2026-02-02",
+      "2026-02-03",
+      "2026-02-04",
+      "2026-02-05"
+    ]
+  },
+  "preprocess_meta": {
+    "initial_shape": [
+      109,
+      99
+    ],
+    "missing_fraction": {
+      "bronze_correction_trips_removed": 0.0,
+      "bronze_distance_km_mean": 0.0,
+      "bronze_distance_km_std": 0.0,
+      "bronze_duplicate_rows_removed": 0.0,
+      "bronze_duration_mean": 0.0,
+      "bronze_duration_std": 0.0,
+      "bronze_excessive_daily_events_units": 0.0,
+      "bronze_idle_time_invalid_corrected": 0.0,
+      "bronze_impossible_speed_events": 0.0,
+      "bronze_ingestion_duration_sec": 0.0,
+      "bronze_input_rows": 0.0,
+      "bronze_invalid_avg_speed_rows": 0.0,
+      "bronze_negative_fuel_events": 0.0,
+      "bronze_null_primary_key_rows": 0.0,
+      "bronze_output_rows": 0.0,
+      "bronze_rows_after_rule_filter": 0.0,
+      "bronze_rows_before_rule_filter": 0.0,
+      "bronze_rows_dropped_by_rules": 0.0,
+      "bronze_start_after_end_rows": 0.0,
+      "bronze_survival_rate": 0.0,
+      "bronze_zero_distance_fuel_events": 0.0,
+      "mean_fuel_consumption_ecol": 0.0,
+      "mean_fuel_consumption_ecor": 0.0,
+      "mean_fuel_consumption_fms_high": 0.0,
+      "mean_fuel_per_100km": 0.0,
+      "mean_idling_per_100km": 0.0,
+      "p50_fuel_per_100km": 0.0,
+      "p50_idling_per_100km": 0.0,
+      "p95_fuel_per_100km": 0.0,
+      "p95_idling_per_100km": 0.0,
+      "raw_avg_speed_mean": 0.0,
+      "raw_avg_speed_std": 0.0,
+      "raw_distance_mean": 0.0,
+      "raw_distance_std": 0.0,
+      "raw_fuel_consumption_mean": 0.9908256880733946,
+      "raw_fuel_consumption_std": 0.9908256880733946,
+      "raw_ingestion_duration_sec": 0.0,
+      "raw_input_record_count": 0.0,
+      "raw_max_trip_end_ts": 0.0,
+      "raw_min_trip_start_ts": 0.0,
+      "raw_null_count_account_id": 0.0,
+      "raw_null_count_avg_speed": 0.0,
+      "raw_null_count_date": 0.0,
+      "raw_null_count_distance": 0.0,
+      "raw_null_count_driver_id": 0.0,
+      "raw_null_count_end": 0.0,
+      "raw_null_count_end_latitude": 0.0,
+      "raw_null_count_end_longitude": 0.0,
+      "raw_null_count_fuel_consumption": 0.0,
+      "raw_null_count_fuel_consumption_ecol": 0.0,
+      "raw_null_count_fuel_consumption_ecor": 0.0,
+      "raw_null_count_fuel_consumption_fms_high": 0.0,
+      "raw_null_count_fuel_consumption_fms_low": 0.0,
+      "raw_null_count_gps_coverage": 0.0,
+      "raw_null_count_hour": 0.0,
+      "raw_null_count_idle_time": 0.0,
+      "raw_null_count_max_speed": 0.0,
+      "raw_null_count_start": 0.0,
+      "raw_null_count_start_latitude": 0.0,
+      "raw_null_count_start_longitude": 0.0,
+      "raw_null_count_trip_type": 0.0,
+      "raw_null_count_unit_id": 0.0,
+      "raw_poor_gps_coverage_count": 0.0,
+      "raw_temporal_coverage_hours": 0.0,
+      "raw_unique_units": 0.0,
+      "silver_avg_speed_imputed": 0.0,
+      "silver_count_after_feature_engineering": 0.0,
+      "silver_count_after_vehicle_info_join": 0.0,
+      "silver_fuel_ecol_available": 0.0,
+      "silver_fuel_ecor_available": 0.0,
+      "silver_fuel_fms_high_available": 0.0,
+      "silver_fuel_fms_low_available": 0.0,
+      "silver_fuel_source_disagreement_count": 0.0,
+      "silver_fuel_subtype_nulls": 0.0,
+      "silver_ingestion_duration_sec": 0.0,
+      "silver_input_data_count": 0.0,
+      "silver_ml_abs_residual_mean": 0.0,
+      "silver_ml_abs_residual_p95": 0.0,
+      "silver_ml_imputation_count": 0.0,
+      "silver_ml_imputed_fuel_mean": 0.0,
+      "silver_ml_imputed_fuel_p95": 0.0,
+      "silver_ml_imputed_fuel_std": 0.0,
+      "silver_ml_large_error_count": 0.0,
+      "silver_ml_percentage_error_mean": 0.0,
+      "silver_ml_prediction_mean": 0.0,
+      "silver_ml_prediction_std": 0.0,
+      "silver_ml_residual_analysis_count": 0.0,
+      "silver_ml_residual_mean": 0.0,
+      "silver_ml_residual_std": 0.0,
+      "silver_null_vehicle_fuel_subtype_rows": 0.0,
+      "silver_null_vehicle_type_rows": 0.0,
+      "silver_output_rows": 0.0,
+      "silver_survival_rate": 0.0,
+      "silver_total_after_join": 0.0,
+      "silver_vehicle_info_join_miss_rate": 0.0,
+      "silver_vehicle_type_nulls": 0.0,
+      "std_fuel_consumption_ecol": 0.0,
+      "std_fuel_consumption_ecor": 0.0,
+      "std_fuel_consumption_fms_high": 0.0
+    },
+    "dropped_all_null": [],
+    "dropped_high_missing": [
+      "raw_fuel_consumption_mean",
+      "raw_fuel_consumption_std"
+    ],
+    "dropped_constant": [
+      "bronze_zero_distance_fuel_events",
+      "raw_null_count_account_id",
+      "raw_null_count_date",
+      "raw_null_count_hour",
+      "raw_null_count_trip_type",
+      "silver_fuel_source_disagreement_count",
+      "silver_survival_rate"
+    ],
+    "dropped_high_correlation": [
+      "bronze_input_rows",
+      "bronze_output_rows",
+      "bronze_rows_after_rule_filter",
+      "mean_fuel_per_100km",
+      "mean_idling_per_100km",
+      "p50_fuel_per_100km",
+      "p50_idling_per_100km",
+      "bronze_impossible_speed_events",
+      "raw_distance_mean",
+      "bronze_rows_before_rule_filter",
+      "raw_input_record_count",
+      "raw_null_count_driver_id",
+      "raw_null_count_end_latitude",
+      "raw_null_count_distance",
+      "raw_null_count_end_longitude",
+      "raw_null_count_fuel_consumption",
+      "raw_null_count_fuel_consumption_ecol",
+      "raw_null_count_fuel_consumption_ecor",
+      "raw_null_count_fuel_consumption_fms_high",
+      "raw_null_count_end",
+      "raw_null_count_fuel_consumption_fms_low",
+      "raw_null_count_start_latitude",
+      "raw_min_trip_start_ts",
+      "raw_null_count_start_longitude",
+      "raw_unique_units",
+      "silver_count_after_feature_engineering",
+      "silver_count_after_vehicle_info_join",
+      "silver_fuel_ecol_available",
+      "silver_fuel_ecor_available",
+      "silver_fuel_fms_high_available",
+      "silver_fuel_fms_low_available",
+      "silver_fuel_subtype_nulls",
+      "silver_ml_abs_residual_mean",
+      "silver_input_data_count",
+      "silver_ml_abs_residual_p95",
+      "silver_ml_imputed_fuel_mean",
+      "silver_ml_imputed_fuel_p95",
+      "silver_ml_imputed_fuel_std",
+      "silver_ml_imputation_count",
+      "silver_ml_residual_analysis_count",
+      "silver_null_vehicle_fuel_subtype_rows",
+      "silver_null_vehicle_type_rows",
+      "silver_output_rows",
+      "silver_total_after_join"
+    ],
+    "final_shape": [
+      109,
+      46
+    ]
+  },
+  "pc_result": {
+    "method": "pc-success",
+    "alpha_selected": 0.1,
+    "alpha_candidates": [
+      0.1,
+      0.12,
+      0.15
+    ],
+    "all_alpha_results": [
+      {
+        "alpha": 0.1,
+        "edges": [
+          [
+            "bronze_survival_rate",
+            "bronze_correction_trips_removed",
+            "directed"
+          ],
+          [
+            "bronze_distance_km_mean",
+            "bronze_distance_km_std",
+            "directed"
+          ],
+          [
+            "bronze_distance_km_mean",
+            "mean_fuel_consumption_ecor",
+            "directed"
+          ],
+          [
+            "bronze_distance_km_mean",
+            "bronze_distance_km_std",
+            "directed"
+          ],
+          [
+            "raw_max_trip_end_ts",
+            "bronze_distance_km_std",
+            "directed"
+          ],
+          [
+            "bronze_duration_mean",
+            "bronze_duration_std",
+            "directed"
+          ],
+          [
+            "bronze_duration_mean",
+            "bronze_rows_dropped_by_rules",
+            "directed"
+          ],
+          [
+            "bronze_duration_mean",
+            "bronze_duration_std",
+            "directed"
+          ],
+          [
+            "bronze_duration_std",
+            "bronze_survival_rate",
+            "directed"
+          ],
+          [
+            "bronze_duration_std",
+            "raw_temporal_coverage_hours",
+            "directed"
+          ],
+          [
+            "bronze_excessive_daily_events_units",
+            "bronze_survival_rate",
+            "directed"
+          ],
+          [
+            "bronze_excessive_daily_events_units",
+            "silver_ml_large_error_count",
+            "directed"
+          ],
+          [
+            "bronze_excessive_daily_events_units",
+            "silver_vehicle_type_nulls",
+            "directed"
+          ],
+          [
+            "bronze_rows_dropped_by_rules",
+            "bronze_idle_time_invalid_corrected",
+            "directed"
+          ],
+          [
+            "p95_idling_per_100km",
+            "bronze_idle_time_invalid_corrected",
+            "directed"
+          ],
+          [
+            "raw_null_count_unit_id",
+            "bronze_ingestion_duration_sec",
+            "directed"
+          ],
+          [
+            "silver_ingestion_duration_sec",
+            "bronze_ingestion_duration_sec",
+            "directed"
+          ],
+          [
+            "bronze_invalid_avg_speed_rows",
+            "bronze_rows_dropped_by_rules",
+            "directed"
+          ],
+          [
+            "bronze_invalid_avg_speed_rows",
+            "raw_avg_speed_std",
+            "directed"
+          ],
+          [
+            "bronze_invalid_avg_speed_rows",
+            "silver_avg_speed_imputed",
+            "directed"
+          ],
+          [
+            "bronze_invalid_avg_speed_rows",
+            "silver_vehicle_type_nulls",
+            "directed"
+          ],
+          [
+            "bronze_null_primary_key_rows",
+            "raw_null_count_start",
+            "directed"
+          ],
+          [
+            "bronze_null_primary_key_rows",
+            "raw_null_count_unit_id",
+            "directed"
+          ],
+          [
+            "bronze_duration_mean",
+            "bronze_rows_dropped_by_rules",
+            "directed"
+          ],
+          [
+            "bronze_rows_dropped_by_rules",
+            "bronze_idle_time_invalid_corrected",
+            "directed"
+          ],
+          [
+            "bronze_invalid_avg_speed_rows",
+            "bronze_rows_dropped_by_rules",
+            "directed"
+          ],
+          [
+            "bronze_rows_dropped_by_rules",
+            "raw_poor_gps_coverage_count",
+            "directed"
+          ],
+          [
+            "bronze_survival_rate",
+            "bronze_start_after_end_rows",
+            "directed"
+          ],
+          [
+            "bronze_survival_rate",
+            "bronze_correction_trips_removed",
+            "directed"
+          ],
+          [
+            "bronze_duration_std",
+            "bronze_survival_rate",
+            "directed"
+          ],
+          [
+            "bronze_excessive_daily_events_units",
+            "bronze_survival_rate",
+            "directed"
+          ],
+          [
+            "bronze_survival_rate",
+            "bronze_start_after_end_rows",
+            "directed"
+          ],
+          [
+            "mean_fuel_consumption_ecol",
+            "silver_vehicle_info_join_miss_rate",
+            "directed"
+          ],
+          [
+            "mean_fuel_consumption_ecol",
+            "std_fuel_consumption_ecol",
+            "directed"
+          ],
+          [
+            "bronze_distance_km_mean",
+            "mean_fuel_consumption_ecor",
+            "directed"
+          ],
+          [
+            "mean_fuel_consumption_ecor",
+            "raw_ingestion_duration_sec",
+            "directed"
+          ],
+          [
+            "mean_fuel_consumption_ecor",
+            "std_fuel_consumption_ecor",
+            "directed"
+          ],
+          [
+            "mean_fuel_consumption_fms_high",
+            "raw_distance_std",
+            "directed"
+          ],
+          [
+            "mean_fuel_consumption_fms_high",
+            "silver_ml_prediction_std",
+            "directed"
+          ],
+          [
+            "mean_fuel_consumption_fms_high",
+            "std_fuel_consumption_fms_high",
+            "directed"
+          ],
+          [
+            "raw_poor_gps_coverage_count",
+            "p95_fuel_per_100km",
+            "directed"
+          ],
+          [
+            "p95_idling_per_100km",
+            "bronze_idle_time_invalid_corrected",
+            "directed"
+          ],
+          [
+            "p95_idling_per_100km",
+            "raw_distance_std",
+            "directed"
+          ],
+          [
+            "p95_idling_per_100km",
+            "raw_null_count_idle_time",
+            "directed"
+          ],
+          [
+            "raw_avg_speed_std",
+            "raw_avg_speed_mean",
+            "directed"
+          ],
+          [
+            "silver_avg_speed_imputed",
+            "raw_avg_speed_mean",
+            "directed"
+          ],
+          [
+            "bronze_invalid_avg_speed_rows",
+            "raw_avg_speed_std",
+            "directed"
+          ],
+          [
+            "raw_avg_speed_mean",
+            "raw_avg_speed_std",
+            "directed"
+          ],
+          [
+            "mean_fuel_consumption_fms_high",
+            "raw_distance_std",
+            "directed"
+          ],
+          [
+            "p95_idling_per_100km",
+            "raw_distance_std",
+            "directed"
+          ],
+          [
+            "mean_fuel_consumption_ecor",
+            "raw_ingestion_duration_sec",
+            "directed"
+          ],
+          [
+            "silver_ingestion_duration_sec",
+            "raw_ingestion_duration_sec",
+            "directed"
+          ],
+          [
+            "bronze_distance_km_std",
+            "raw_max_trip_end_ts",
+            "directed"
+          ],
+          [
+            "silver_vehicle_info_join_miss_rate",
+            "raw_max_trip_end_ts",
+            "directed"
+          ],
+          [
+            "std_fuel_consumption_ecor",
+            "raw_max_trip_end_ts",
+            "directed"
+          ],
+          [
+            "raw_null_count_idle_time",
+            "raw_null_count_avg_speed",
+            "directed"
+          ],
+          [
+            "silver_avg_speed_imputed",
+            "raw_null_count_avg_speed",
+            "directed"
+          ],
+          [
+            "p95_idling_per_100km",
+            "raw_null_count_idle_time",
+            "directed"
+          ],
+          [
+            "raw_null_count_avg_speed",
+            "raw_null_count_idle_time",
+            "directed"
+          ],
+          [
+            "bronze_null_primary_key_rows",
+            "raw_null_count_start",
+            "directed"
+          ],
+          [
+            "bronze_ingestion_duration_sec",
+            "raw_null_count_unit_id",
+            "directed"
+          ],
+          [
+            "bronze_null_primary_key_rows",
+            "raw_null_count_unit_id",
+            "directed"
+          ],
+          [
+            "bronze_rows_dropped_by_rules",
+            "raw_poor_gps_coverage_count",
+            "directed"
+          ],
+          [
+            "p95_fuel_per_100km",
+            "raw_poor_gps_coverage_count",
+            "directed"
+          ],
+          [
+            "silver_vehicle_type_nulls",
+            "raw_poor_gps_coverage_count",
+            "directed"
+          ],
+          [
+            "bronze_duration_std",
+            "raw_temporal_coverage_hours",
+            "directed"
+          ],
+          [
+            "bronze_invalid_avg_speed_rows",
+            "silver_avg_speed_imputed",
+            "directed"
+          ],
+          [
+            "silver_avg_speed_imputed",
+            "raw_avg_speed_mean",
+            "directed"
+          ],
+          [
+            "silver_avg_speed_imputed",
+            "raw_null_count_avg_speed",
+            "directed"
+          ],
+          [
+            "bronze_ingestion_duration_sec",
+            "silver_ingestion_duration_sec",
+            "directed"
+          ],
+          [
+            "raw_ingestion_duration_sec",
+            "silver_ingestion_duration_sec",
+            "directed"
+          ],
+          [
+            "bronze_excessive_daily_events_units",
+            "silver_ml_large_error_count",
+            "directed"
+          ],
+          [
+            "silver_ml_large_error_count",
+            "silver_ml_prediction_std",
+            "directed"
+          ],
+          [
+            "silver_ml_large_error_count",
+            "silver_ml_residual_std",
+            "directed"
+          ],
+          [
+            "silver_ml_large_error_count",
+            "silver_vehicle_type_nulls",
+            "directed"
+          ],
+          [
+            "silver_ml_residual_mean",
+            "silver_ml_percentage_error_mean",
+            "directed"
+          ],
+          [
+            "silver_ml_prediction_mean",
+            "silver_ml_prediction_std",
+            "directed"
+          ],
+          [
+            "silver_ml_prediction_mean",
+            "silver_ml_residual_mean",
+            "directed"
+          ],
+          [
+            "silver_ml_prediction_mean",
+            "silver_ml_residual_std",
+            "directed"
+          ],
+          [
+            "mean_fuel_consumption_fms_high",
+            "silver_ml_prediction_std",
+            "directed"
+          ],
+          [
+            "silver_ml_large_error_count",
+            "silver_ml_prediction_std",
+            "directed"
+          ],
+          [
+            "silver_ml_prediction_mean",
+            "silver_ml_prediction_std",
+            "directed"
+          ],
+          [
+            "silver_ml_percentage_error_mean",
+            "silver_ml_residual_mean",
+            "directed"
+          ],
+          [
+            "silver_ml_prediction_mean",
+            "silver_ml_residual_mean",
+            "directed"
+          ],
+          [
+            "silver_ml_large_error_count",
+            "silver_ml_residual_std",
+            "directed"
+          ],
+          [
+            "silver_ml_prediction_mean",
+            "silver_ml_residual_std",
+            "directed"
+          ],
+          [
+            "mean_fuel_consumption_ecol",
+            "silver_vehicle_info_join_miss_rate",
+            "directed"
+          ],
+          [
+            "silver_vehicle_info_join_miss_rate",
+            "raw_max_trip_end_ts",
+            "directed"
+          ],
+          [
+            "silver_vehicle_info_join_miss_rate",
+            "silver_vehicle_type_nulls",
+            "directed"
+          ],
+          [
+            "silver_vehicle_info_join_miss_rate",
+            "std_fuel_consumption_ecor",
+            "directed"
+          ],
+          [
+            "bronze_excessive_daily_events_units",
+            "silver_vehicle_type_nulls",
+            "directed"
+          ],
+          [
+            "bronze_invalid_avg_speed_rows",
+            "silver_vehicle_type_nulls",
+            "directed"
+          ],
+          [
+            "raw_poor_gps_coverage_count",
+            "silver_vehicle_type_nulls",
+            "directed"
+          ],
+          [
+            "silver_ml_large_error_count",
+            "silver_vehicle_type_nulls",
+            "directed"
+          ],
+          [
+            "silver_vehicle_info_join_miss_rate",
+            "silver_vehicle_type_nulls",
+            "directed"
+          ],
+          [
+            "mean_fuel_consumption_ecol",
+            "std_fuel_consumption_ecol",
+            "directed"
+          ],
+          [
+            "mean_fuel_consumption_ecor",
+            "std_fuel_consumption_ecor",
+            "directed"
+          ],
+          [
+            "raw_max_trip_end_ts",
+            "std_fuel_consumption_ecor",
+            "directed"
+          ],
+          [
+            "silver_vehicle_info_join_miss_rate",
+            "std_fuel_consumption_ecor",
+            "directed"
+          ],
+          [
+            "mean_fuel_consumption_fms_high",
+            "std_fuel_consumption_fms_high",
+            "directed"
+          ]
+        ],
+        "n_edges": 100,
+        "avg_edges_per_node": 4.3478260869565215,
+        "score": -1.8478260869565215
+      },
+      {
+        "alpha": 0.12,
+        "edges": [
+          [
+            "bronze_survival_rate",
+            "bronze_correction_trips_removed",
+            "directed"
+          ],
+          [
+            "bronze_distance_km_mean",
+            "bronze_distance_km_std",
+            "directed"
+          ],
+          [
+            "bronze_distance_km_mean",
+            "mean_fuel_consumption_ecor",
+            "directed"
+          ],
+          [
+            "bronze_distance_km_mean",
+            "bronze_distance_km_std",
+            "directed"
+          ],
+          [
+            "bronze_distance_km_std",
+            "raw_max_trip_end_ts",
+            "directed"
+          ],
+          [
+            "bronze_duration_mean",
+            "bronze_duration_std",
+            "directed"
+          ],
+          [
+            "bronze_duration_mean",
+            "bronze_rows_dropped_by_rules",
+            "directed"
+          ],
+          [
+            "bronze_duration_mean",
+            "bronze_duration_std",
+            "directed"
+          ],
+          [
+            "bronze_duration_std",
+            "bronze_survival_rate",
+            "directed"
+          ],
+          [
+            "bronze_duration_std",
+            "raw_temporal_coverage_hours",
+            "directed"
+          ],
+          [
+            "bronze_excessive_daily_events_units",
+            "bronze_survival_rate",
+            "directed"
+          ],
+          [
+            "bronze_excessive_daily_events_units",
+            "silver_ml_large_error_count",
+            "directed"
+          ],
+          [
+            "bronze_excessive_daily_events_units",
+            "silver_vehicle_type_nulls",
+            "directed"
+          ],
+          [
+            "bronze_rows_dropped_by_rules",
+            "bronze_idle_time_invalid_corrected",
+            "directed"
+          ],
+          [
+            "p95_idling_per_100km",
+            "bronze_idle_time_invalid_corrected",
+            "directed"
+          ],
+          [
+            "raw_null_count_unit_id",
+            "bronze_ingestion_duration_sec",
+            "directed"
+          ],
+          [
+            "silver_ingestion_duration_sec",
+            "bronze_ingestion_duration_sec",
+            "directed"
+          ],
+          [
+            "bronze_invalid_avg_speed_rows",
+            "bronze_rows_dropped_by_rules",
+            "directed"
+          ],
+          [
+            "bronze_invalid_avg_speed_rows",
+            "silver_avg_speed_imputed",
+            "directed"
+          ],
+          [
+            "bronze_invalid_avg_speed_rows",
+            "silver_vehicle_type_nulls",
+            "directed"
+          ],
+          [
+            "bronze_null_primary_key_rows",
+            "raw_null_count_start",
+            "directed"
+          ],
+          [
+            "bronze_null_primary_key_rows",
+            "raw_null_count_unit_id",
+            "directed"
+          ],
+          [
+            "bronze_duration_mean",
+            "bronze_rows_dropped_by_rules",
+            "directed"
+          ],
+          [
+            "bronze_rows_dropped_by_rules",
+            "bronze_idle_time_invalid_corrected",
+            "directed"
+          ],
+          [
+            "bronze_invalid_avg_speed_rows",
+            "bronze_rows_dropped_by_rules",
+            "directed"
+          ],
+          [
+            "bronze_rows_dropped_by_rules",
+            "raw_poor_gps_coverage_count",
+            "directed"
+          ],
+          [
+            "bronze_survival_rate",
+            "bronze_start_after_end_rows",
+            "directed"
+          ],
+          [
+            "bronze_survival_rate",
+            "bronze_correction_trips_removed",
+            "directed"
+          ],
+          [
+            "bronze_duration_std",
+            "bronze_survival_rate",
+            "directed"
+          ],
+          [
+            "bronze_excessive_daily_events_units",
+            "bronze_survival_rate",
+            "directed"
+          ],
+          [
+            "bronze_survival_rate",
+            "bronze_start_after_end_rows",
+            "directed"
+          ],
+          [
+            "mean_fuel_consumption_ecol",
+            "silver_vehicle_info_join_miss_rate",
+            "directed"
+          ],
+          [
+            "mean_fuel_consumption_ecol",
+            "std_fuel_consumption_ecol",
+            "directed"
+          ],
+          [
+            "bronze_distance_km_mean",
+            "mean_fuel_consumption_ecor",
+            "directed"
+          ],
+          [
+            "mean_fuel_consumption_ecor",
+            "raw_ingestion_duration_sec",
+            "directed"
+          ],
+          [
+            "mean_fuel_consumption_ecor",
+            "std_fuel_consumption_ecor",
+            "directed"
+          ],
+          [
+            "mean_fuel_consumption_fms_high",
+            "raw_distance_std",
+            "directed"
+          ],
+          [
+            "mean_fuel_consumption_fms_high",
+            "silver_ml_prediction_std",
+            "directed"
+          ],
+          [
+            "mean_fuel_consumption_fms_high",
+            "std_fuel_consumption_fms_high",
+            "directed"
+          ],
+          [
+            "raw_poor_gps_coverage_count",
+            "p95_fuel_per_100km",
+            "directed"
+          ],
+          [
+            "p95_idling_per_100km",
+            "bronze_idle_time_invalid_corrected",
+            "directed"
+          ],
+          [
+            "p95_idling_per_100km",
+            "raw_distance_std",
+            "directed"
+          ],
+          [
+            "p95_idling_per_100km",
+            "raw_null_count_idle_time",
+            "directed"
+          ],
+          [
+            "raw_avg_speed_std",
+            "raw_avg_speed_mean",
+            "directed"
+          ],
+          [
+            "silver_avg_speed_imputed",
+            "raw_avg_speed_mean",
+            "directed"
+          ],
+          [
+            "raw_avg_speed_mean",
+            "raw_avg_speed_std",
+            "directed"
+          ],
+          [
+            "mean_fuel_consumption_fms_high",
+            "raw_distance_std",
+            "directed"
+          ],
+          [
+            "p95_idling_per_100km",
+            "raw_distance_std",
+            "directed"
+          ],
+          [
+            "raw_max_trip_end_ts",
+            "raw_distance_std",
+            "directed"
+          ],
+          [
+            "mean_fuel_consumption_ecor",
+            "raw_ingestion_duration_sec",
+            "directed"
+          ],
+          [
+            "silver_ingestion_duration_sec",
+            "raw_ingestion_duration_sec",
+            "directed"
+          ],
+          [
+            "bronze_distance_km_std",
+            "raw_max_trip_end_ts",
+            "directed"
+          ],
+          [
+            "raw_max_trip_end_ts",
+            "raw_distance_std",
+            "directed"
+          ],
+          [
+            "raw_max_trip_end_ts",
+            "silver_vehicle_info_join_miss_rate",
+            "directed"
+          ],
+          [
+            "raw_max_trip_end_ts",
+            "std_fuel_consumption_ecor",
+            "directed"
+          ],
+          [
+            "raw_null_count_idle_time",
+            "raw_null_count_avg_speed",
+            "directed"
+          ],
+          [
+            "silver_avg_speed_imputed",
+            "raw_null_count_avg_speed",
+            "directed"
+          ],
+          [
+            "p95_idling_per_100km",
+            "raw_null_count_idle_time",
+            "directed"
+          ],
+          [
+            "raw_null_count_avg_speed",
+            "raw_null_count_idle_time",
+            "directed"
+          ],
+          [
+            "bronze_null_primary_key_rows",
+            "raw_null_count_start",
+            "directed"
+          ],
+          [
+            "bronze_ingestion_duration_sec",
+            "raw_null_count_unit_id",
+            "directed"
+          ],
+          [
+            "bronze_null_primary_key_rows",
+            "raw_null_count_unit_id",
+            "directed"
+          ],
+          [
+            "bronze_rows_dropped_by_rules",
+            "raw_poor_gps_coverage_count",
+            "directed"
+          ],
+          [
+            "p95_fuel_per_100km",
+            "raw_poor_gps_coverage_count",
+            "directed"
+          ],
+          [
+            "silver_vehicle_type_nulls",
+            "raw_poor_gps_coverage_count",
+            "directed"
+          ],
+          [
+            "bronze_duration_std",
+            "raw_temporal_coverage_hours",
+            "directed"
+          ],
+          [
+            "bronze_invalid_avg_speed_rows",
+            "silver_avg_speed_imputed",
+            "directed"
+          ],
+          [
+            "silver_avg_speed_imputed",
+            "raw_avg_speed_mean",
+            "directed"
+          ],
+          [
+            "silver_avg_speed_imputed",
+            "raw_null_count_avg_speed",
+            "directed"
+          ],
+          [
+            "bronze_ingestion_duration_sec",
+            "silver_ingestion_duration_sec",
+            "directed"
+          ],
+          [
+            "raw_ingestion_duration_sec",
+            "silver_ingestion_duration_sec",
+            "directed"
+          ],
+          [
+            "bronze_excessive_daily_events_units",
+            "silver_ml_large_error_count",
+            "directed"
+          ],
+          [
+            "silver_ml_large_error_count",
+            "silver_ml_prediction_std",
+            "directed"
+          ],
+          [
+            "silver_ml_large_error_count",
+            "silver_ml_residual_std",
+            "directed"
+          ],
+          [
+            "silver_ml_large_error_count",
+            "silver_vehicle_type_nulls",
+            "directed"
+          ],
+          [
+            "silver_ml_residual_mean",
+            "silver_ml_percentage_error_mean",
+            "directed"
+          ],
+          [
+            "silver_ml_prediction_mean",
+            "silver_ml_prediction_std",
+            "directed"
+          ],
+          [
+            "silver_ml_prediction_mean",
+            "silver_ml_residual_mean",
+            "directed"
+          ],
+          [
+            "silver_ml_prediction_mean",
+            "silver_ml_residual_std",
+            "directed"
+          ],
+          [
+            "mean_fuel_consumption_fms_high",
+            "silver_ml_prediction_std",
+            "directed"
+          ],
+          [
+            "silver_ml_large_error_count",
+            "silver_ml_prediction_std",
+            "directed"
+          ],
+          [
+            "silver_ml_prediction_mean",
+            "silver_ml_prediction_std",
+            "directed"
+          ],
+          [
+            "silver_ml_percentage_error_mean",
+            "silver_ml_residual_mean",
+            "directed"
+          ],
+          [
+            "silver_ml_prediction_mean",
+            "silver_ml_residual_mean",
+            "directed"
+          ],
+          [
+            "silver_ml_large_error_count",
+            "silver_ml_residual_std",
+            "directed"
+          ],
+          [
+            "silver_ml_prediction_mean",
+            "silver_ml_residual_std",
+            "directed"
+          ],
+          [
+            "mean_fuel_consumption_ecol",
+            "silver_vehicle_info_join_miss_rate",
+            "directed"
+          ],
+          [
+            "raw_max_trip_end_ts",
+            "silver_vehicle_info_join_miss_rate",
+            "directed"
+          ],
+          [
+            "silver_vehicle_info_join_miss_rate",
+            "silver_vehicle_type_nulls",
+            "directed"
+          ],
+          [
+            "silver_vehicle_info_join_miss_rate",
+            "std_fuel_consumption_ecor",
+            "directed"
+          ],
+          [
+            "bronze_excessive_daily_events_units",
+            "silver_vehicle_type_nulls",
+            "directed"
+          ],
+          [
+            "bronze_invalid_avg_speed_rows",
+            "silver_vehicle_type_nulls",
+            "directed"
+          ],
+          [
+            "raw_poor_gps_coverage_count",
+            "silver_vehicle_type_nulls",
+            "directed"
+          ],
+          [
+            "silver_ml_large_error_count",
+            "silver_vehicle_type_nulls",
+            "directed"
+          ],
+          [
+            "silver_vehicle_info_join_miss_rate",
+            "silver_vehicle_type_nulls",
+            "directed"
+          ],
+          [
+            "mean_fuel_consumption_ecol",
+            "std_fuel_consumption_ecol",
+            "directed"
+          ],
+          [
+            "mean_fuel_consumption_ecor",
+            "std_fuel_consumption_ecor",
+            "directed"
+          ],
+          [
+            "raw_max_trip_end_ts",
+            "std_fuel_consumption_ecor",
+            "directed"
+          ],
+          [
+            "silver_vehicle_info_join_miss_rate",
+            "std_fuel_consumption_ecor",
+            "directed"
+          ],
+          [
+            "mean_fuel_consumption_fms_high",
+            "std_fuel_consumption_fms_high",
+            "directed"
+          ]
+        ],
+        "n_edges": 100,
+        "avg_edges_per_node": 4.3478260869565215,
+        "score": -1.8478260869565215
+      },
+      {
+        "alpha": 0.15,
+        "edges": [
+          [
+            "bronze_survival_rate",
+            "bronze_correction_trips_removed",
+            "directed"
+          ],
+          [
+            "bronze_distance_km_mean",
+            "bronze_distance_km_std",
+            "directed"
+          ],
+          [
+            "bronze_distance_km_mean",
+            "mean_fuel_consumption_ecor",
+            "directed"
+          ],
+          [
+            "bronze_distance_km_mean",
+            "bronze_distance_km_std",
+            "directed"
+          ],
+          [
+            "bronze_survival_rate",
+            "bronze_distance_km_std",
+            "directed"
+          ],
+          [
+            "bronze_distance_km_std",
+            "raw_max_trip_end_ts",
+            "directed"
+          ],
+          [
+            "bronze_duration_mean",
+            "bronze_duration_std",
+            "directed"
+          ],
+          [
+            "bronze_duration_mean",
+            "bronze_rows_dropped_by_rules",
+            "directed"
+          ],
+          [
+            "bronze_duration_mean",
+            "bronze_duration_std",
+            "directed"
+          ],
+          [
+            "bronze_duration_std",
+            "bronze_survival_rate",
+            "directed"
+          ],
+          [
+            "bronze_duration_std",
+            "raw_temporal_coverage_hours",
+            "directed"
+          ],
+          [
+            "bronze_duration_std",
+            "silver_ml_prediction_std",
+            "directed"
+          ],
+          [
+            "bronze_excessive_daily_events_units",
+            "bronze_survival_rate",
+            "directed"
+          ],
+          [
+            "bronze_excessive_daily_events_units",
+            "silver_ml_large_error_count",
+            "directed"
+          ],
+          [
+            "silver_vehicle_type_nulls",
+            "bronze_excessive_daily_events_units",
+            "directed"
+          ],
+          [
+            "bronze_rows_dropped_by_rules",
+            "bronze_idle_time_invalid_corrected",
+            "directed"
+          ],
+          [
+            "p95_idling_per_100km",
+            "bronze_idle_time_invalid_corrected",
+            "directed"
+          ],
+          [
+            "raw_null_count_unit_id",
+            "bronze_ingestion_duration_sec",
+            "directed"
+          ],
+          [
+            "silver_ingestion_duration_sec",
+            "bronze_ingestion_duration_sec",
+            "directed"
+          ],
+          [
+            "bronze_invalid_avg_speed_rows",
+            "bronze_rows_dropped_by_rules",
+            "directed"
+          ],
+          [
+            "bronze_invalid_avg_speed_rows",
+            "silver_avg_speed_imputed",
+            "directed"
+          ],
+          [
+            "bronze_invalid_avg_speed_rows",
+            "silver_vehicle_type_nulls",
+            "directed"
+          ],
+          [
+            "bronze_null_primary_key_rows",
+            "raw_null_count_start",
+            "directed"
+          ],
+          [
+            "bronze_null_primary_key_rows",
+            "raw_null_count_unit_id",
+            "directed"
+          ],
+          [
+            "bronze_duration_mean",
+            "bronze_rows_dropped_by_rules",
+            "directed"
+          ],
+          [
+            "bronze_rows_dropped_by_rules",
+            "bronze_idle_time_invalid_corrected",
+            "directed"
+          ],
+          [
+            "bronze_invalid_avg_speed_rows",
+            "bronze_rows_dropped_by_rules",
+            "directed"
+          ],
+          [
+            "bronze_rows_dropped_by_rules",
+            "raw_poor_gps_coverage_count",
+            "directed"
+          ],
+          [
+            "bronze_survival_rate",
+            "bronze_start_after_end_rows",
+            "directed"
+          ],
+          [
+            "bronze_survival_rate",
+            "bronze_correction_trips_removed",
+            "directed"
+          ],
+          [
+            "bronze_survival_rate",
+            "bronze_distance_km_std",
+            "directed"
+          ],
+          [
+            "bronze_duration_std",
+            "bronze_survival_rate",
+            "directed"
+          ],
+          [
+            "bronze_excessive_daily_events_units",
+            "bronze_survival_rate",
+            "directed"
+          ],
+          [
+            "bronze_survival_rate",
+            "bronze_start_after_end_rows",
+            "directed"
+          ],
+          [
+            "mean_fuel_consumption_ecol",
+            "silver_vehicle_info_join_miss_rate",
+            "directed"
+          ],
+          [
+            "mean_fuel_consumption_ecol",
+            "std_fuel_consumption_ecol",
+            "directed"
+          ],
+          [
+            "bronze_distance_km_mean",
+            "mean_fuel_consumption_ecor",
+            "directed"
+          ],
+          [
+            "mean_fuel_consumption_ecor",
+            "raw_ingestion_duration_sec",
+            "directed"
+          ],
+          [
+            "mean_fuel_consumption_ecor",
+            "std_fuel_consumption_ecor",
+            "directed"
+          ],
+          [
+            "mean_fuel_consumption_fms_high",
+            "raw_distance_std",
+            "directed"
+          ],
+          [
+            "mean_fuel_consumption_fms_high",
+            "silver_ml_prediction_std",
+            "directed"
+          ],
+          [
+            "mean_fuel_consumption_fms_high",
+            "std_fuel_consumption_fms_high",
+            "directed"
+          ],
+          [
+            "raw_poor_gps_coverage_count",
+            "p95_fuel_per_100km",
+            "directed"
+          ],
+          [
+            "silver_vehicle_type_nulls",
+            "p95_fuel_per_100km",
+            "directed"
+          ],
+          [
+            "p95_idling_per_100km",
+            "bronze_idle_time_invalid_corrected",
+            "directed"
+          ],
+          [
+            "p95_idling_per_100km",
+            "raw_distance_std",
+            "directed"
+          ],
+          [
+            "p95_idling_per_100km",
+            "raw_null_count_idle_time",
+            "directed"
+          ],
+          [
+            "raw_avg_speed_std",
+            "raw_avg_speed_mean",
+            "directed"
+          ],
+          [
+            "silver_avg_speed_imputed",
+            "raw_avg_speed_mean",
+            "directed"
+          ],
+          [
+            "raw_avg_speed_mean",
+            "raw_avg_speed_std",
+            "directed"
+          ],
+          [
+            "mean_fuel_consumption_fms_high",
+            "raw_distance_std",
+            "directed"
+          ],
+          [
+            "p95_idling_per_100km",
+            "raw_distance_std",
+            "directed"
+          ],
+          [
+            "raw_max_trip_end_ts",
+            "raw_distance_std",
+            "directed"
+          ],
+          [
+            "mean_fuel_consumption_ecor",
+            "raw_ingestion_duration_sec",
+            "directed"
+          ],
+          [
+            "silver_ingestion_duration_sec",
+            "raw_ingestion_duration_sec",
+            "directed"
+          ],
+          [
+            "bronze_distance_km_std",
+            "raw_max_trip_end_ts",
+            "directed"
+          ],
+          [
+            "raw_max_trip_end_ts",
+            "raw_distance_std",
+            "directed"
+          ],
+          [
+            "raw_max_trip_end_ts",
+            "silver_vehicle_info_join_miss_rate",
+            "directed"
+          ],
+          [
+            "raw_max_trip_end_ts",
+            "std_fuel_consumption_ecor",
+            "directed"
+          ],
+          [
+            "raw_null_count_idle_time",
+            "raw_null_count_avg_speed",
+            "directed"
+          ],
+          [
+            "silver_avg_speed_imputed",
+            "raw_null_count_avg_speed",
+            "directed"
+          ],
+          [
+            "p95_idling_per_100km",
+            "raw_null_count_idle_time",
+            "directed"
+          ],
+          [
+            "raw_null_count_avg_speed",
+            "raw_null_count_idle_time",
+            "directed"
+          ],
+          [
+            "bronze_null_primary_key_rows",
+            "raw_null_count_start",
+            "directed"
+          ],
+          [
+            "bronze_ingestion_duration_sec",
+            "raw_null_count_unit_id",
+            "directed"
+          ],
+          [
+            "bronze_null_primary_key_rows",
+            "raw_null_count_unit_id",
+            "directed"
+          ],
+          [
+            "bronze_rows_dropped_by_rules",
+            "raw_poor_gps_coverage_count",
+            "directed"
+          ],
+          [
+            "raw_poor_gps_coverage_count",
+            "p95_fuel_per_100km",
+            "directed"
+          ],
+          [
+            "raw_poor_gps_coverage_count",
+            "silver_vehicle_type_nulls",
+            "directed"
+          ],
+          [
+            "bronze_duration_std",
+            "raw_temporal_coverage_hours",
+            "directed"
+          ],
+          [
+            "bronze_invalid_avg_speed_rows",
+            "silver_avg_speed_imputed",
+            "directed"
+          ],
+          [
+            "silver_avg_speed_imputed",
+            "raw_avg_speed_mean",
+            "directed"
+          ],
+          [
+            "silver_avg_speed_imputed",
+            "raw_null_count_avg_speed",
+            "directed"
+          ],
+          [
+            "bronze_ingestion_duration_sec",
+            "silver_ingestion_duration_sec",
+            "directed"
+          ],
+          [
+            "raw_ingestion_duration_sec",
+            "silver_ingestion_duration_sec",
+            "directed"
+          ],
+          [
+            "bronze_excessive_daily_events_units",
+            "silver_ml_large_error_count",
+            "directed"
+          ],
+          [
+            "silver_ml_large_error_count",
+            "silver_ml_prediction_std",
+            "directed"
+          ],
+          [
+            "silver_ml_large_error_count",
+            "silver_ml_residual_std",
+            "directed"
+          ],
+          [
+            "silver_ml_large_error_count",
+            "silver_vehicle_type_nulls",
+            "directed"
+          ],
+          [
+            "silver_ml_residual_mean",
+            "silver_ml_percentage_error_mean",
+            "directed"
+          ],
+          [
+            "silver_ml_prediction_mean",
+            "silver_ml_prediction_std",
+            "directed"
+          ],
+          [
+            "silver_ml_prediction_mean",
+            "silver_ml_residual_mean",
+            "directed"
+          ],
+          [
+            "silver_ml_prediction_mean",
+            "silver_ml_residual_std",
+            "directed"
+          ],
+          [
+            "bronze_duration_std",
+            "silver_ml_prediction_std",
+            "directed"
+          ],
+          [
+            "mean_fuel_consumption_fms_high",
+            "silver_ml_prediction_std",
+            "directed"
+          ],
+          [
+            "silver_ml_large_error_count",
+            "silver_ml_prediction_std",
+            "directed"
+          ],
+          [
+            "silver_ml_prediction_mean",
+            "silver_ml_prediction_std",
+            "directed"
+          ],
+          [
+            "silver_ml_percentage_error_mean",
+            "silver_ml_residual_mean",
+            "directed"
+          ],
+          [
+            "silver_ml_prediction_mean",
+            "silver_ml_residual_mean",
+            "directed"
+          ],
+          [
+            "silver_ml_large_error_count",
+            "silver_ml_residual_std",
+            "directed"
+          ],
+          [
+            "silver_ml_prediction_mean",
+            "silver_ml_residual_std",
+            "directed"
+          ],
+          [
+            "mean_fuel_consumption_ecol",
+            "silver_vehicle_info_join_miss_rate",
+            "directed"
+          ],
+          [
+            "raw_max_trip_end_ts",
+            "silver_vehicle_info_join_miss_rate",
+            "directed"
+          ],
+          [
+            "silver_vehicle_info_join_miss_rate",
+            "silver_vehicle_type_nulls",
+            "directed"
+          ],
+          [
+            "silver_vehicle_info_join_miss_rate",
+            "std_fuel_consumption_ecor",
+            "directed"
+          ],
+          [
+            "silver_vehicle_type_nulls",
+            "bronze_excessive_daily_events_units",
+            "directed"
+          ],
+          [
+            "bronze_invalid_avg_speed_rows",
+            "silver_vehicle_type_nulls",
+            "directed"
+          ],
+          [
+            "silver_vehicle_type_nulls",
+            "p95_fuel_per_100km",
+            "directed"
+          ],
+          [
+            "raw_poor_gps_coverage_count",
+            "silver_vehicle_type_nulls",
+            "directed"
+          ],
+          [
+            "silver_ml_large_error_count",
+            "silver_vehicle_type_nulls",
+            "directed"
+          ],
+          [
+            "silver_vehicle_info_join_miss_rate",
+            "silver_vehicle_type_nulls",
+            "directed"
+          ],
+          [
+            "mean_fuel_consumption_ecol",
+            "std_fuel_consumption_ecol",
+            "directed"
+          ],
+          [
+            "mean_fuel_consumption_ecor",
+            "std_fuel_consumption_ecor",
+            "directed"
+          ],
+          [
+            "raw_max_trip_end_ts",
+            "std_fuel_consumption_ecor",
+            "directed"
+          ],
+          [
+            "silver_vehicle_info_join_miss_rate",
+            "std_fuel_consumption_ecor",
+            "directed"
+          ],
+          [
+            "mean_fuel_consumption_fms_high",
+            "std_fuel_consumption_fms_high",
+            "directed"
+          ]
+        ],
+        "n_edges": 106,
+        "avg_edges_per_node": 4.608695652173913,
+        "score": -2.108695652173913
+      }
+    ],
+    "n_skeleton_edges": 100
+  },
+  "notears_result": {
+    "method": "notears-success",
+    "lambda_selected": 0.01,
+    "n_weighted_edges": 60
+  },
+  "bootstrap_result": {
+    "n_resamples": 100,
+    "thresholds": [
+      0.6,
+      0.4
+    ],
+    "edges_0_60_conservative": 60,
+    "edges_0_40_exploratory": 60,
+    "total_edges_seen": 60
+  },
+  "ablation_analysis": {
+    "conservative_graph": {
+      "bootstrap_threshold": 0.6,
+      "isolation_recovery": false,
+      "n_edges": 71,
+      "n_connected": 42,
+      "n_isolated": 4,
+      "recovery_gain": 0
+    },
+    "exploratory_graph": {
+      "bootstrap_threshold": 0.4,
+      "isolation_recovery": true,
+      "n_edges": 64,
+      "n_connected": 44,
+      "n_isolated": 2,
+      "recovery_gain": -7
+    },
+    "bootstrap_sensitivity": {
+      "edges_gained_0_40_vs_0_60": 0,
+      "percent_increase": 0.0
+    },
+    "alpha_sensitivity": {
+      "pc_alpha_candidates": [
+        0.1,
+        0.12,
+        0.15
+      ],
+      "selected_alpha": 0.1,
+      "note": "All PC alpha results exported separately for sensitivity analysis"
+    }
+  },
+  "refinement": {
+    "n_removed_by_blacklist": 12,
+    "n_pattern_priors_added": 23,
+    "n_isolated_recovered": 3,
+    "n_bidirectional_pairs": 0
+  },
+  "final_graph": {
+    "n_edges": 64,
+    "is_dag": true,
+    "n_connected_nodes": 44,
+    "n_isolated_nodes": 2
+  },
+  "tier_assignments": {
+    "bronze_correction_trips_removed": 1,
+    "bronze_distance_km_mean": 1,
+    "bronze_distance_km_std": 1,
+    "bronze_duplicate_rows_removed": 1,
+    "bronze_duration_mean": 1,
+    "bronze_duration_std": 1,
+    "bronze_excessive_daily_events_units": 1,
+    "bronze_idle_time_invalid_corrected": 1,
+    "bronze_ingestion_duration_sec": 1,
+    "bronze_invalid_avg_speed_rows": 1,
+    "bronze_negative_fuel_events": 1,
+    "bronze_null_primary_key_rows": 1,
+    "bronze_rows_dropped_by_rules": 1,
+    "bronze_start_after_end_rows": 1,
+    "bronze_survival_rate": 1,
+    "mean_fuel_consumption_ecol": 3,
+    "mean_fuel_consumption_ecor": 3,
+    "mean_fuel_consumption_fms_high": 3,
+    "p95_fuel_per_100km": 3,
+    "p95_idling_per_100km": 3,
+    "raw_avg_speed_mean": 0,
+    "raw_avg_speed_std": 0,
+    "raw_distance_std": 0,
+    "raw_ingestion_duration_sec": 0,
+    "raw_max_trip_end_ts": 0,
+    "raw_null_count_avg_speed": 0,
+    "raw_null_count_gps_coverage": 0,
+    "raw_null_count_idle_time": 0,
+    "raw_null_count_max_speed": 0,
+    "raw_null_count_start": 0,
+    "raw_null_count_unit_id": 0,
+    "raw_poor_gps_coverage_count": 0,
+    "raw_temporal_coverage_hours": 0,
+    "silver_avg_speed_imputed": 3,
+    "silver_ingestion_duration_sec": 2,
+    "silver_ml_large_error_count": 3,
+    "silver_ml_percentage_error_mean": 3,
+    "silver_ml_prediction_mean": 3,
+    "silver_ml_prediction_std": 3,
+    "silver_ml_residual_mean": 3,
+    "silver_ml_residual_std": 3,
+    "silver_vehicle_info_join_miss_rate": 2,
+    "silver_vehicle_type_nulls": 2,
+    "std_fuel_consumption_ecol": 2,
+    "std_fuel_consumption_ecor": 2,
+    "std_fuel_consumption_fms_high": 2
+  }
+}

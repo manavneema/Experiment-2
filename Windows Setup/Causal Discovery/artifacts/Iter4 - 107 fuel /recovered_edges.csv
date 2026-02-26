@@ -1,0 +1,4 @@
+from,to,weight,abs_weight,bootstrap_frequency,correlation,source,source_out_degree,source_in_degree,target_out_degree,target_in_degree
+raw_distance_std,raw_max_trip_end_ts,0.6900709461640212,0.6900709461640212,0.0,0.6900709461640209,isolation_recovery,2,0,2,1
+raw_distance_std,bronze_distance_km_std,0.6370044465618406,0.6370044465618406,0.0,0.6370044465618409,isolation_recovery,2,0,0,3
+raw_null_count_gps_coverage,bronze_excessive_daily_events_units,0.3044468484019832,0.3044468484019832,0.0,0.3044468484019832,isolation_recovery,1,0,3,1

@@ -1,0 +1,151 @@
+{
+  "silver_ml_percentage_error_mean": [
+    "silver_ml_residual_mean"
+  ],
+  "bronze_mean_fuel_consumption_fms_high": [
+    "raw_mean_fuel_consumption_fms_high",
+    "bronze_std_fuel_consumption_fms_high"
+  ],
+  "raw_mean_fuel_consumption_ecor": [
+    "raw_std_fuel_consumption_ecor",
+    "bronze_distance_km_mean",
+    "raw_ingestion_duration_sec"
+  ],
+  "bronze_distance_km_std": [
+    "bronze_distance_km_mean",
+    "raw_max_trip_end_ts"
+  ],
+  "silver_ml_residual_mean": [
+    "silver_ml_prediction_mean"
+  ],
+  "bronze_std_fuel_consumption_ecol": [
+    "raw_std_fuel_consumption_ecol"
+  ],
+  "silver_ml_prediction_std": [
+    "silver_ml_prediction_mean",
+    "silver_ml_residual_mean"
+  ],
+  "p95_fuel_per_100km": [
+    "raw_poor_gps_coverage_count",
+    "bronze_distance_km_mean"
+  ],
+  "silver_ml_large_error_count": [
+    "bronze_excessive_daily_events_units",
+    "bronze_std_fuel_consumption_fms_high"
+  ],
+  "silver_vehicle_type_nulls": [
+    "raw_poor_gps_coverage_count",
+    "silver_ml_large_error_count",
+    "bronze_excessive_daily_events_units",
+    "bronze_mean_fuel_consumption_ecor",
+    "silver_vehicle_info_join_miss_rate"
+  ],
+  "bronze_mean_fuel_consumption_ecor": [
+    "bronze_std_fuel_consumption_ecor",
+    "raw_mean_fuel_consumption_ecor"
+  ],
+  "raw_max_trip_end_ts": [
+    "raw_std_fuel_consumption_ecor",
+    "raw_distance_std"
+  ],
+  "silver_avg_speed_imputed": [
+    "bronze_invalid_avg_speed_rows",
+    "bronze_distance_km_mean",
+    "bronze_duration_mean"
+  ],
+  "silver_ml_residual_std": [
+    "silver_ml_prediction_mean",
+    "silver_ml_large_error_count"
+  ],
+  "raw_null_count_start": [
+    "bronze_null_primary_key_rows"
+  ],
+  "raw_poor_gps_coverage_count": [
+    "bronze_std_fuel_consumption_fms_high",
+    "bronze_rows_dropped_by_rules"
+  ],
+  "silver_vehicle_info_join_miss_rate": [
+    "raw_mean_fuel_consumption_ecol",
+    "bronze_distance_km_mean"
+  ],
+  "bronze_rows_dropped_by_rules": [
+    "bronze_invalid_avg_speed_rows",
+    "bronze_duration_mean"
+  ],
+  "raw_avg_speed_std": [
+    "bronze_invalid_avg_speed_rows",
+    "bronze_distance_km_mean",
+    "bronze_duration_mean"
+  ],
+  "bronze_survival_rate": [
+    "bronze_excessive_daily_events_units",
+    "bronze_distance_km_mean"
+  ],
+  "p95_idling_per_100km": [
+    "bronze_mean_fuel_consumption_ecor",
+    "bronze_distance_km_mean"
+  ],
+  "raw_null_count_idle_time": [
+    "raw_null_count_avg_speed"
+  ],
+  "raw_std_fuel_consumption_ecol": [
+    "raw_mean_fuel_consumption_ecol"
+  ],
+  "bronze_duration_std": [
+    "bronze_duration_mean",
+    "raw_temporal_coverage_hours"
+  ],
+  "bronze_correction_trips_removed": [
+    "bronze_survival_rate"
+  ],
+  "bronze_start_after_end_rows": [
+    "bronze_survival_rate"
+  ],
+  "raw_std_fuel_consumption_fms_high": [
+    "raw_mean_fuel_consumption_fms_high"
+  ],
+  "bronze_idle_time_invalid_corrected": [
+    "bronze_rows_dropped_by_rules",
+    "raw_null_count_idle_time"
+  ],
+  "bronze_invalid_avg_speed_rows": [
+    "raw_avg_speed_mean",
+    "raw_null_count_avg_speed",
+    "bronze_distance_km_mean",
+    "bronze_duration_mean"
+  ],
+  "bronze_std_fuel_consumption_ecor": [
+    "raw_std_fuel_consumption_ecor"
+  ],
+  "bronze_std_fuel_consumption_fms_high": [
+    "raw_std_fuel_consumption_fms_high"
+  ],
+  "silver_ingestion_duration_sec": [
+    "bronze_duration_mean",
+    "bronze_ingestion_duration_sec"
+  ],
+  "bronze_null_primary_key_rows": [
+    "raw_null_count_unit_id"
+  ],
+  "raw_avg_speed_mean": [
+    "bronze_distance_km_mean",
+    "bronze_duration_mean"
+  ],
+  "raw_null_count_avg_speed": [
+    "bronze_distance_km_mean",
+    "bronze_duration_mean"
+  ],
+  "raw_null_count_max_speed": [
+    "bronze_distance_km_mean",
+    "bronze_duration_mean"
+  ],
+  "raw_ingestion_duration_sec": [
+    "bronze_ingestion_duration_sec"
+  ],
+  "raw_std_fuel_consumption_ecor": [
+    "raw_distance_std"
+  ],
+  "bronze_excessive_daily_events_units": [
+    "raw_null_count_gps_coverage"
+  ]
+}

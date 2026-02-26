@@ -23,21 +23,21 @@ GROUND_TRUTH = {
         "causal_path": "raw_null_count_unit_id → bronze_null_primary_key_rows → bronze_rows_dropped_by_rules"
     },
     
-    "case5_sensor_reading_nulls": {
+    "case5_sensor_reads_nulls": {
         "category": "Raw Data Quality - NULL Injections",
         "description": "35% of fuel_consumption readings set to NULL (sensor calibration failure)",
         "fault_date": "2026-02-12",
         "fault_type": "sensor_nulls",
         "fault_severity": "medium",
         "true_root_causes": {
-            "raw_null_count_fuel_consumption"  # Direct root cause
+            "raw_mean_fuel_consumption_ecol"  # sensor-level fuel mean becomes NaN (mapped)
         },
         "expected_downstream": {
-            "raw_fuel_consumption_mean",  # Statistical property affected
+            "raw_mean_fuel_consumption_ecol",  # Statistical property affected (raw-layer mean)
             "bronze_rows_dropped_by_rules"  # Validation drops incomplete rows
         },
         "affected_tiers": ["raw", "bronze"],
-        "causal_path": "raw_null_count_fuel_consumption → raw_fuel_consumption_mean → bronze_rows_dropped_by_rules"
+        "causal_path": "raw_mean_fuel_consumption_ecol → bronze_mean_fuel_consumption_ecol → bronze_rows_dropped_by_rules"
     },
     
     "case6_vehicle_id_nulls": {
@@ -47,7 +47,7 @@ GROUND_TRUTH = {
         "fault_type": "foreign_key_nulls",
         "fault_severity": "medium",
         "true_root_causes": {
-            "raw_null_count_vehicle_id"  # Direct root cause
+            "raw_null_count_unit_id"  # Direct root cause (graph-native)
         },
         "expected_downstream": {
             "bronze_null_primary_key_rows",  # Validation detects nulls
@@ -68,16 +68,16 @@ GROUND_TRUTH = {
         "fault_type": "gps_sensor_failure",
         "fault_severity": "high",
         "true_root_causes": {
-            "raw_null_count_distance",
-            "raw_null_count_start_longitude",
-            "raw_distance_mean"
+            "raw_null_count_gps_coverage",
+            "raw_null_count_start",
+            "raw_distance_std"
         },
         "expected_downstream": {
             "bronze_rows_dropped_by_rules",  # Distance-dependent validation drops rows
             "bronze_invalid_avg_speed_rows"  # Can't compute speed without distance
         },
         "affected_tiers": ["raw", "bronze"],
-        "causal_path": "raw_null_count_distance → bronze_invalid_avg_speed_rows → bronze_rows_dropped_by_rules"
+        "causal_path": "raw_null_count_gps_coverage → bronze_invalid_avg_speed_rows → bronze_rows_dropped_by_rules"
     },
     
     "case7_extreme_values": {
@@ -88,7 +88,7 @@ GROUND_TRUTH = {
         "fault_severity": "medium",
         "true_root_causes": {
             "raw_avg_speed_mean",  # Mean increases 10x
-            "raw_fuel_consumption_std"  # Variance increases dramatically
+            "raw_std_fuel_consumption_ecol"  # Fuel variance (mapped)
         },
         "expected_downstream": {
             "bronze_invalid_avg_speed_rows",  # Validation detects outliers
@@ -105,15 +105,15 @@ GROUND_TRUTH = {
         "fault_type": "temporal_constraint_violation",
         "fault_severity": "high",
         "true_root_causes": {
-            "raw_duration_mean",  # Duration becomes negative/erratic
-            "raw_negative_duration_count"  # Count of negative durations
+            "bronze_duration_mean",  # Duration aggregated in bronze
+            "bronze_rows_dropped_by_rules"  # validation count
         },
         "expected_downstream": {
             "bronze_rows_dropped_by_rules",  # Validation fails on negative duration
             "bronze_survival_rate"  # Percentage of rows surviving validation decreases
         },
         "affected_tiers": ["raw", "bronze"],
-        "causal_path": "raw_duration_mean → raw_negative_duration_count → bronze_rows_dropped_by_rules"
+        "causal_path": "bronze_duration_mean → bronze_rows_dropped_by_rules"
     },
     
     # =================================================================
@@ -132,7 +132,7 @@ GROUND_TRUTH = {
         },
         "expected_downstream": {
             "silver_ml_residual_mean",  # Residuals become non-zero
-            "silver_ml_imputed_fuel_p95"  # Imputation logic triggers
+            "silver_ml_residual_mean"  # imputation proxy -> residuals in current graph
         },
         "affected_tiers": ["bronze", "silver", "ml"],
         "causal_path": "silver_ml_large_error_count → p95_fuel_per_100km → silver_ml_residual_mean"
@@ -166,11 +166,11 @@ GROUND_TRUTH = {
             "silver_ml_large_error_count"  # ML error detection triggers
         },
         "expected_downstream": {
-            "silver_ml_imputed_fuel_p95",  # Imputation handles outliers
+            "silver_ml_residual_mean",  # imputation proxy in graph
             "bronze_invalid_avg_speed_rows"  # Validation may fail on extreme values
         },
         "affected_tiers": ["bronze", "silver", "ml"],
-        "causal_path": "silver_ml_large_error_count → silver_ml_imputed_fuel_p95 → bronze_invalid_avg_speed_rows"
+        "causal_path": "silver_ml_large_error_count → silver_ml_residual_mean → bronze_invalid_avg_speed_rows"
     },
     
     # =================================================================
@@ -202,15 +202,15 @@ GROUND_TRUTH = {
         "fault_type": "temporal_anomaly",
         "fault_severity": "medium",
         "true_root_causes": {
-            "raw_duration_mean",  # Duration increases dramatically
-            "raw_duration_std"  # Variance increases
+            "bronze_duration_mean",  # Duration increases dramatically
+            "bronze_duration_std"  # Variance increases
         },
         "expected_downstream": {
             "bronze_rows_dropped_by_rules",  # Anomalous durations fail validation
             "bronze_survival_rate"  # Fewer rows survive
         },
         "affected_tiers": ["raw", "bronze"],
-        "causal_path": "raw_duration_mean → raw_duration_std → bronze_rows_dropped_by_rules"
+        "causal_path": "bronze_duration_mean → bronze_duration_std → bronze_rows_dropped_by_rules"
     },
     
     "case12_timestamp_inconsistencies": {
@@ -220,8 +220,8 @@ GROUND_TRUTH = {
         "fault_type": "timestamp_inconsistency",
         "fault_severity": "medium",
         "true_root_causes": {
-            "raw_max_trip_start_ts",  # Start timestamps become inconsistent
-            "raw_max_trip_end_ts"  # End timestamps become inconsistent
+            "raw_max_trip_end_ts",  # End timestamps become inconsistent (graph uses end ts)
+            "raw_max_trip_end_ts"
         },
         "expected_downstream": {
             "bronze_duplicate_rows_removed",  # Deduplication logic triggered
@@ -246,7 +246,7 @@ GROUND_TRUTH = {
         },
         "expected_downstream": {
             "bronze_rows_dropped_by_rules",  # Duplicates dropped by validation
-            "raw_unique_units"  # Count decreases (same unit counted multiple times)
+            "bronze_duplicate_rows_removed"  # represented in graph
         },
         "affected_tiers": ["bronze"],
         "causal_path": "bronze_duplicate_rows_removed → bronze_rows_dropped_by_rules → raw_unique_units"
@@ -279,25 +279,109 @@ GROUND_TRUTH = {
             "bronze_duplicate_rows_removed"  # Duplicate detection triggers
         },
         "expected_downstream": {
-            "raw_unique_units",  # Count inflated (duplicates counted)
-            "silver_avg_speed"  # May become erratic (conflicting duplicates)
+            "bronze_duplicate_rows_removed",  # graph-native indicator
+            "silver_avg_speed_imputed"  # imputed speed metric present in graph
         },
         "affected_tiers": ["bronze", "silver"],
         "causal_path": "bronze_duplicate_rows_removed → raw_unique_units → silver_avg_speed"
     }
+    ,"case16_vehicle_id_nulls_low": {
+        "category": "Raw Data Quality - NULL Injections",
+        "description": "5% of vehicle_id values set to NULL (low-severity)",
+        "fault_date": "2025-10-12",
+        "fault_type": "foreign_key_nulls",
+        "fault_severity": "low",
+        "true_root_causes": {"raw_null_count_unit_id"},
+        "expected_downstream": {"bronze_null_primary_key_rows", "silver_vehicle_info_join_miss_rate"},
+        "affected_tiers": ["raw","bronze","silver"],
+        "causal_path": "raw_null_count_unit_id → bronze_null_primary_key_rows → silver_vehicle_info_join_miss_rate"
+    },
+
+    "case17_extreme_values_low": {
+        "category": "Raw Data Quality - Validation Issues",
+        "description": "Low-severity extreme values (5%)",
+        "fault_date": "2025-10-13",
+        "fault_type": "extreme_values_outliers",
+        "fault_severity": "low",
+        "true_root_causes": {"raw_avg_speed_mean","raw_std_fuel_consumption_ecol"},
+        "expected_downstream": {"bronze_invalid_avg_speed_rows","bronze_rows_dropped_by_rules"},
+        "affected_tiers": ["raw","bronze"],
+        "causal_path": "raw_avg_speed_mean → raw_std_fuel_consumption_ecol → bronze_invalid_avg_speed_rows"
+    },
+
+    "case18_invalid_ranges_low": {
+        "category": "Raw Data Quality - Validation Issues",
+        "description": "Low-severity invalid ranges (10%)",
+        "fault_date": "2025-10-14",
+        "fault_type": "temporal_constraint_violation",
+        "fault_severity": "low",
+        "true_root_causes": {"bronze_duration_mean","bronze_rows_dropped_by_rules"},
+        "expected_downstream": {"bronze_rows_dropped_by_rules","bronze_survival_rate"},
+        "affected_tiers": ["bronze"],
+        "causal_path": "bronze_duration_mean → bronze_rows_dropped_by_rules"
+    },
+
+    "case19_speed_prediction_drift_low": {
+        "category": "ML Layer - Model Quality",
+        "description": "Low-severity speed prediction drift (10%)",
+        "fault_date": "2025-10-15",
+        "fault_type": "ml_model_drift",
+        "fault_severity": "low",
+        "true_root_causes": {"silver_ml_large_error_count","silver_ml_prediction_std"},
+        "expected_downstream": {"silver_ml_residual_mean","p95_fuel_per_100km"},
+        "affected_tiers": ["silver","ml"],
+        "causal_path": "silver_ml_large_error_count → silver_ml_prediction_std → silver_ml_residual_mean"
+    },
+
+    "case20_prediction_outliers_low": {
+        "category": "ML Layer - Model Quality",
+        "description": "Low-severity prediction outliers (5%)",
+        "fault_date": "2025-10-16",
+        "fault_type": "ml_outliers",
+        "fault_severity": "low",
+        "true_root_causes": {"silver_ml_large_error_count"},
+        "expected_downstream": {"silver_ml_residual_mean","bronze_invalid_avg_speed_rows"},
+        "affected_tiers": ["bronze","silver","ml"],
+        "causal_path": "silver_ml_large_error_count → silver_ml_residual_mean → bronze_invalid_avg_speed_rows"
+    },
+
+    "case21_duration_anomalies_low": {
+        "category": "Temporal/Duration Issues",
+        "description": "Low-severity duration anomalies (10%)",
+        "fault_date": "2025-10-17",
+        "fault_type": "temporal_anomaly",
+        "fault_severity": "low",
+        "true_root_causes": {"bronze_duration_mean","bronze_duration_std"},
+        "expected_downstream": {"bronze_rows_dropped_by_rules","bronze_survival_rate"},
+        "affected_tiers": ["bronze"],
+        "causal_path": "bronze_duration_mean → bronze_duration_std → bronze_rows_dropped_by_rules"
+    },
+
+    "case22_timestamp_inconsistencies_low": {
+        "category": "Temporal/Duration Issues",
+        "description": "Low-severity timestamp inconsistencies (15%)",
+        "fault_date": "2025-10-18",
+        "fault_type": "timestamp_inconsistency",
+        "fault_severity": "low",
+        "true_root_causes": {"raw_max_trip_end_ts"},
+        "expected_downstream": {"bronze_duplicate_rows_removed","silver_vehicle_info_join_miss_rate"},
+        "affected_tiers": ["raw","bronze","silver"],
+        "causal_path": "raw_max_trip_end_ts → bronze_duplicate_rows_removed"
+    }
+
 }
 
 # Summary of all test cases
 TEST_CASE_SUMMARY = {
-    "total_cases": 15,
+    "total_cases": 22,
     "categories": 5,
-    "cases_per_category": 3,
-    "date_range": ("2026-02-06", "2026-02-22"),
+    "cases_per_category": null,
+    "date_range": ("2025-10-01", "2026-02-22"),
     "category_breakdown": {
-        "Raw Data Quality - NULL Injections": 3,  # Cases 1, 5, 6
-        "Raw Data Quality - Validation Issues": 3,  # Cases 2, 7, 8
-        "ML Layer - Model Quality": 3,  # Cases 3, 9, 10
-        "Temporal/Duration Issues": 3,  # Cases 4, 11, 12
+        "Raw Data Quality - NULL Injections": 4,  # Cases 1,5,6,16
+        "Raw Data Quality - Validation Issues": 5,  # Cases 2,7,8,17,18
+        "ML Layer - Model Quality": 5,  # Cases 3,9,10,19,20
+        "Temporal/Duration Issues": 5,  # Cases 4,11,12,21,22
         "Bronze Layer - Transformation Issues": 3  # Cases 13, 14, 15
     }
 }

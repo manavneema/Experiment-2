@@ -159,6 +159,10 @@ GRAPHS_TO_EVALUATE = {
     # NOTEARS
     "notears_filtered": False,
     "notears_raw": False,
+    
+    # Hybrid graphs
+    "hybrid_filtered": False,          # original pipeline (v2)
+    "hybrid_v3_filtered": True        # new v3 artifacts
 
     "hybrid_filtered": True,
 }

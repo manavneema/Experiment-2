@@ -16,7 +16,7 @@
 
 # COMMAND ----------
 
-from pyspark.sql.functions import rand, when, col, lit, expr
+from pyspark.sql.functions import rand, when, col, lit, expr, concat
 import pyspark.sql.functions as F
 from datetime import datetime, timedelta
 
@@ -31,28 +31,37 @@ from datetime import datetime, timedelta
 TEST_CASES = {
     # CATEGORY 1: Raw Data Quality - NULL Injections
     "case1": {"date": "2026-02-06", "name": "unit_id nulls", "null_rate": 0.40},
-    "case5": {"date": "2026-02-12", "name": "sensor_reading nulls", "null_rate": 0.35},
-    "case6": {"date": "2026-02-13", "name": "vehicle_id nulls", "null_rate": 0.25},
+    "case5": {"date": "2025-10-01", "name": "sensor_reading nulls", "null_rate": 0.35},
+    "case6": {"date": "2025-10-02", "name": "vehicle_id nulls", "null_rate": 0.25},
     
     # CATEGORY 2: Raw Data Quality - Validation Issues
     "case2": {"date": "2026-02-09", "name": "distance/gps nulls", "null_rate": 0.35},
-    "case7": {"date": "2026-02-14", "name": "extreme values", "severity": 0.20},
-    "case8": {"date": "2026-02-15", "name": "invalid ranges", "null_rate": 0.30},
+    "case7": {"date": "2025-10-03", "name": "extreme values", "severity": 0.20},
+    "case8": {"date": "2025-10-04", "name": "invalid ranges", "null_rate": 0.30},
     
     # CATEGORY 3: ML Layer - Model Quality
     "case3": {"date": "2026-02-10", "name": "fuel sensor drift", "drift_rate": 0.15},
-    "case9": {"date": "2026-02-16", "name": "speed prediction drift", "drift_rate": 0.20},
-    "case10": {"date": "2026-02-17", "name": "prediction outliers", "outlier_rate": 0.15},
+    "case9": {"date": "2025-10-05", "name": "speed prediction drift", "drift_rate": 0.20},
+    "case10": {"date": "2025-10-06", "name": "prediction outliers", "outlier_rate": 0.15},
     
     # CATEGORY 4: Temporal/Duration Issues
     "case4": {"date": "2026-02-11", "name": "clock skew", "skew_rate": 0.10},
-    "case11": {"date": "2026-02-18", "name": "duration anomalies", "anomaly_rate": 0.20},
-    "case12": {"date": "2026-02-19", "name": "timestamp inconsistencies", "inconsistency_rate": 0.25},
+    "case11": {"date": "2025-10-07", "name": "duration anomalies", "anomaly_rate": 0.20},
+    "case12": {"date": "2025-10-08", "name": "timestamp inconsistencies", "inconsistency_rate": 0.25},
     
     # CATEGORY 5: Bronze Layer - Transformation Issues
-    "case13": {"date": "2026-02-20", "name": "aggregation errors", "error_rate": 0.15},
-    "case14": {"date": "2026-02-21", "name": "join failures", "failure_rate": 0.20},
-    "case15": {"date": "2026-02-22", "name": "duplicate handling", "dup_rate": 0.30},
+    "case13": {"date": "2025-10-09", "name": "aggregation errors", "error_rate": 0.15},
+    "case14": {"date": "2025-10-10", "name": "join failures", "failure_rate": 0.20},
+    "case15": {"date": "2025-10-11", "name": "duplicate handling", "dup_rate": 0.30},
+
+    # Less severe dq issues 
+    "case16": {"date": "2025-10-12", "name": "vehicle_id nulls", "null_rate": 0.05},
+    "case17": {"date": "2025-10-13", "name": "extreme values", "severity": 0.05},
+    "case18": {"date": "2025-10-14", "name": "invalid ranges", "null_rate": 0.10},
+    "case19": {"date": "2025-10-15", "name": "speed prediction drift", "drift_rate": 0.10},
+    "case20": {"date": "2025-10-16", "name": "prediction outliers", "outlier_rate": 0.05},
+    "case21": {"date": "2025-10-17", "name": "duration anomalies", "anomaly_rate": 0.10},
+    "case22": {"date": "2025-10-18", "name": "timestamp inconsistencies", "inconsistency_rate": 0.15},
 }
 
 print("="*70)
@@ -71,16 +80,15 @@ for case_id, config in TEST_CASES.items():
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ### CASE 5: Sensor Reading Nulls (35% rate)
+# MAGIC ### CASE 5: Sensor Reading Nulls for all Fuel Consumption columns
 # MAGIC **Domain:** Raw sensor data quality
 # MAGIC **Fault:** Sensor calibration failure causing null readings
 # MAGIC **Expected Metrics Affected:**
-# MAGIC - raw_null_count_fuel_consumption increases
-# MAGIC - raw_fuel_consumption_mean becomes NaN/volatile
-# MAGIC - bronze_rows_dropped_by_rules increases
+# MAGIC - fuel_consumption_ecol/ecor/fms_high becomes null
 
 # COMMAND ----------
 
+# DBTITLE 1,Cell 7
 case5_config = TEST_CASES["case5"]
 df_case5 = spark.sql(f"select * from bms_ds_bronze.trips where date = '{case5_config['date']}'")
 
@@ -88,19 +96,23 @@ print(f"Case 5: {case5_config['name']} ({case5_config['date']})")
 print(f"Original count: {df_case5.count()}")
 
 # Inject nulls into fuel_consumption column (35% rate)
-df_case5 = df_case5.withColumn(
-    "fuel_consumption",
-    when(rand() < case5_config['null_rate'], None).otherwise(col("fuel_consumption"))
-)
+df_case5 = df_case5.withColumn("fuel_consumption_ecol", lit(None))
+df_case5 = df_case5.withColumn("fuel_consumption_ecor", lit(None))
+df_case5 = df_case5.withColumn("fuel_consumption_fms_high", lit(None))
 
-print(f"Rows with null fuel_consumption: {df_case5.filter(col('fuel_consumption').isNull()).count()}")
+
+print(f"Rows with null fuel_consumption: {df_case5.filter(col('fuel_consumption_ecol').isNull()).count()}")
+print(f"Rows with null fuel_consumption: {df_case5.filter(col('fuel_consumption_ecor').isNull()).count()}")
+print(f"Rows with null fuel_consumption: {df_case5.filter(col('fuel_consumption_fms_high').isNull()).count()}")
+
+
 
 (
     df_case5
     .write
     .mode("append")
     .format("delta")
-    .saveAsTable("bms_ds_prod.bms_ds_dasc.temp_test_cases")
+    .saveAsTable("bms_ds_prod.bms_ds_dasc.temp_fault_injection_training")
 )
 
 print("✓ Case 5 saved")
@@ -126,21 +138,48 @@ print(f"Original count: {df_case6.count()}")
 
 # Inject nulls into vehicle_id column (25% rate)
 df_case6 = df_case6.withColumn(
-    "vehicle_id",
-    when(rand() < case6_config['null_rate'], None).otherwise(col("vehicle_id"))
+    "unit_id",
+    when(rand() < case6_config['null_rate'], None).otherwise(col("unit_id"))
 )
 
-print(f"Rows with null vehicle_id: {df_case6.filter(col('vehicle_id').isNull()).count()}")
+print(f"Rows with null vehicle_id: {df_case6.filter(col('unit_id').isNull()).count()}")
 
 (
     df_case6
     .write
     .mode("append")
     .format("delta")
-    .saveAsTable("bms_ds_prod.bms_ds_dasc.temp_test_cases")
+    .saveAsTable("bms_ds_prod.bms_ds_dasc.temp_fault_injection_training")
 )
 
 print("✓ Case 6 saved")
+
+# COMMAND ----------
+
+case16_config = TEST_CASES["case16"]
+df_case16 = spark.sql(f"select * from bms_ds_bronze.trips where date = '{case16_config['date']}'")
+
+print(f"Case 16: {case16_config['name']} ({case16_config['date']})")
+print(f"Original count: {df_case16.count()}")
+print('severity:', case16_config['null_rate'])
+
+# Inject nulls into vehicle_id column (25% rate)
+df_case16 = df_case16.withColumn(
+    "unit_id",
+    when(rand() < case16_config['null_rate'], None).otherwise(col("unit_id"))
+)
+
+print(f"Rows with null vehicle_id: {df_case16.filter(col('unit_id').isNull()).count()}")
+
+(
+    df_case16
+    .write
+    .mode("append")
+    .format("delta")
+    .saveAsTable("bms_ds_prod.bms_ds_dasc.temp_fault_injection_training")
+)
+
+print("✓ Case 16 saved")
 
 # COMMAND ----------
 
@@ -162,6 +201,7 @@ print("✓ Case 6 saved")
 
 # COMMAND ----------
 
+# DBTITLE 1,Cell 12
 case7_config = TEST_CASES["case7"]
 df_case7 = spark.sql(f"select * from bms_ds_bronze.trips where date = '{case7_config['date']}'")
 
@@ -177,10 +217,16 @@ df_case7 = df_case7.withColumn(
     rand(seed) < case7_config['severity']
 ).withColumn(
     "avg_speed",
-    when(col("_inject_extreme"), col("avg_speed") * extreme_multiplier).otherwise(col("avg_speed"))
+    when(col("_inject_extreme"), (col("avg_speed") * extreme_multiplier).cast("long")).otherwise(col("avg_speed"))
 ).withColumn(
     "fuel_consumption",
-    when(col("_inject_extreme"), col("fuel_consumption") * extreme_multiplier).otherwise(col("fuel_consumption"))
+    when(col("_inject_extreme"), (col("fuel_consumption_ecol") * extreme_multiplier).cast("long")).otherwise(col("fuel_consumption_ecol"))
+).withColumn(
+    "fuel_consumption_ecor",
+    when(col("_inject_extreme"), (col("fuel_consumption_ecol") * extreme_multiplier).cast("long")).otherwise(col("fuel_consumption_ecol"))
+).withColumn(
+    "fuel_consumption_fms_high",
+    when(col("_inject_extreme"), (col("fuel_consumption_ecol") * extreme_multiplier).cast("long")).otherwise(col("fuel_consumption_ecol"))
 ).drop("_inject_extreme")
 
 print(f"Rows with extreme values: {int(df_case7.count() * case7_config['severity'])}")
@@ -190,10 +236,51 @@ print(f"Rows with extreme values: {int(df_case7.count() * case7_config['severity
     .write
     .mode("append")
     .format("delta")
-    .saveAsTable("bms_ds_prod.bms_ds_dasc.temp_test_cases")
+    .saveAsTable("bms_ds_prod.bms_ds_dasc.temp_fault_injection_training")
 )
 
 print("✓ Case 7 saved")
+
+# COMMAND ----------
+
+case17_config = TEST_CASES["case17"]
+df_case17 = spark.sql(f"select * from bms_ds_bronze.trips where date = '{case17_config['date']}'")
+
+print(f"Case 7: {case17_config['name']} ({case17_config['date']})")
+print(f"Original count: {df_case17.count()}")
+
+seed = 42
+extreme_multiplier = 10.0  # Make values 10x normal
+
+# Inject extreme values into speed and fuel columns
+df_case17 = df_case17.withColumn(
+    "_inject_extreme",
+    rand(seed) < case17_config['severity']
+).withColumn(
+    "avg_speed",
+    when(col("_inject_extreme"), (col("avg_speed") * extreme_multiplier).cast("long")).otherwise(col("avg_speed"))
+).withColumn(
+    "fuel_consumption",
+    when(col("_inject_extreme"), (col("fuel_consumption_ecol") * extreme_multiplier).cast("long")).otherwise(col("fuel_consumption_ecol"))
+).withColumn(
+    "fuel_consumption_ecor",
+    when(col("_inject_extreme"), (col("fuel_consumption_ecol") * extreme_multiplier).cast("long")).otherwise(col("fuel_consumption_ecol"))
+).withColumn(
+    "fuel_consumption_fms_high",
+    when(col("_inject_extreme"), (col("fuel_consumption_ecol") * extreme_multiplier).cast("long")).otherwise(col("fuel_consumption_ecol"))
+).drop("_inject_extreme")
+
+print(f"Rows with extreme values: {int(df_case17.count() * case17_config['severity'])}")
+
+(
+    df_case17
+    .write
+    .mode("append")
+    .format("delta")
+    .saveAsTable("bms_ds_prod.bms_ds_dasc.temp_fault_injection_training")
+)
+
+print("✓ Case 17 saved")
 
 # COMMAND ----------
 
@@ -233,10 +320,41 @@ print(f"Rows with invalid ranges: {int(df_case8.count() * case8_config['null_rat
     .write
     .mode("append")
     .format("delta")
-    .saveAsTable("bms_ds_prod.bms_ds_dasc.temp_test_cases")
+    .saveAsTable("bms_ds_prod.bms_ds_dasc.temp_fault_injection_training")
 )
 
 print("✓ Case 8 saved")
+
+# COMMAND ----------
+
+case18_config = TEST_CASES["case18"]
+df_case18 = spark.sql(f"select * from bms_ds_bronze.trips where date = '{case18_config['date']}'")
+
+print(f"Case 8: {case18_config['name']} ({case18_config['date']})")
+print(f"Original count: {df_case18.count()}")
+
+seed = 43
+print(case18_config['null_rate'])
+# Create invalid ranges: negative durations, future end dates, etc.
+df_case18 = df_case18.withColumn(
+    "_inject_invalid",
+    rand(seed) < case18_config['null_rate']
+).withColumn(
+    "start",
+    when(col("_inject_invalid"), expr("date_add(end, 1)")).otherwise(col("start"))  # Start after end
+).drop("_inject_invalid")
+
+print(f"Rows with invalid ranges: {int(df_case18.count() * case18_config['null_rate'])}")
+
+(
+    df_case18
+    .write
+    .mode("append")
+    .format("delta")
+    .saveAsTable("bms_ds_prod.bms_ds_dasc.temp_fault_injection_training")
+)
+
+print("✓ Case 18 saved")
 
 # COMMAND ----------
 
@@ -258,6 +376,7 @@ print("✓ Case 8 saved")
 
 # COMMAND ----------
 
+# DBTITLE 1,Cell 17
 case9_config = TEST_CASES["case9"]
 df_case9 = spark.sql(f"select * from bms_ds_bronze.trips where date = '{case9_config['date']}'")
 
@@ -276,7 +395,7 @@ df_case9 = df_case9.withColumn(
     "avg_speed",
     when(
         col("_speed_drift"),
-        col("avg_speed") * (drift_multiplier_low + rand(seed + 1) * (drift_multiplier_high - drift_multiplier_low))
+        (col("avg_speed") * (drift_multiplier_low + rand(seed + 1) * (drift_multiplier_high - drift_multiplier_low))).cast("long")
     ).otherwise(col("avg_speed"))
 ).drop("_speed_drift")
 
@@ -287,10 +406,46 @@ print(f"Rows with speed drift: {int(df_case9.count() * case9_config['drift_rate'
     .write
     .mode("append")
     .format("delta")
-    .saveAsTable("bms_ds_prod.bms_ds_dasc.temp_test_cases")
+    .saveAsTable("bms_ds_prod.bms_ds_dasc.temp_fault_injection_training")
 )
 
 print("✓ Case 9 saved")
+
+# COMMAND ----------
+
+case19_config = TEST_CASES["case19"]
+df_case19 = spark.sql(f"select * from bms_ds_bronze.trips where date = '{case19_config['date']}'")
+
+print(f"Case 9: {case19_config['name']} ({case19_config['date']})")
+print(f"Original count: {df_case19.count()}")
+
+seed = 44
+drift_multiplier_low = 1.5
+drift_multiplier_high = 2.5
+
+# Inject speed drift (simulates model prediction error)
+df_case19 = df_case19.withColumn(
+    "_speed_drift",
+    rand(seed) < case19_config['drift_rate']
+).withColumn(
+    "avg_speed",
+    when(
+        col("_speed_drift"),
+        (col("avg_speed") * (drift_multiplier_low + rand(seed + 1) * (drift_multiplier_high - drift_multiplier_low))).cast("long")
+    ).otherwise(col("avg_speed"))
+).drop("_speed_drift")
+
+print(f"Rows with speed drift: {int(df_case19.count() * case19_config['drift_rate'])}")
+
+(
+    df_case19
+    .write
+    .mode("append")
+    .format("delta")
+    .saveAsTable("bms_ds_prod.bms_ds_dasc.temp_fault_injection_training")
+)
+
+print("✓ Case 19 saved")
 
 # COMMAND ----------
 
@@ -305,6 +460,7 @@ print("✓ Case 9 saved")
 
 # COMMAND ----------
 
+# DBTITLE 1,Cell 19
 case10_config = TEST_CASES["case10"]
 df_case10 = spark.sql(f"select * from bms_ds_bronze.trips where date = '{case10_config['date']}'")
 
@@ -319,8 +475,14 @@ df_case10 = df_case10.withColumn(
     "_has_outlier",
     rand(seed) < case10_config['outlier_rate']
 ).withColumn(
-    "fuel_consumption",
-    when(col("_has_outlier"), col("fuel_consumption") * outlier_multiplier).otherwise(col("fuel_consumption"))
+    "fuel_consumption_ecol",
+    when(col("_has_outlier"), (col("fuel_consumption") * outlier_multiplier).cast("long")).otherwise(col("fuel_consumption"))
+).withColumn(
+    "fuel_consumption_ecor",
+    when(col("_has_outlier"), (col("fuel_consumption") * outlier_multiplier).cast("long")).otherwise(col("fuel_consumption"))
+).withColumn(
+    "fuel_consumption_fms_high",
+    when(col("_has_outlier"), (col("fuel_consumption") * outlier_multiplier).cast("long")).otherwise(col("fuel_consumption"))
 ).drop("_has_outlier")
 
 print(f"Rows with prediction outliers: {int(df_case10.count() * case10_config['outlier_rate'])}")
@@ -330,10 +492,48 @@ print(f"Rows with prediction outliers: {int(df_case10.count() * case10_config['o
     .write
     .mode("append")
     .format("delta")
-    .saveAsTable("bms_ds_prod.bms_ds_dasc.temp_test_cases")
+    .saveAsTable("bms_ds_prod.bms_ds_dasc.temp_fault_injection_training")
 )
 
 print("✓ Case 10 saved")
+
+# COMMAND ----------
+
+case20_config = TEST_CASES["case20"]
+df_case20 = spark.sql(f"select * from bms_ds_bronze.trips where date = '{case20_config['date']}'")
+
+print(f"Case 10: {case20_config['name']} ({case20_config['date']})")
+print(f"Original count: {df_case20.count()}")
+
+seed = 45
+outlier_multiplier = 20.0  # Extreme predictions
+
+# Inject prediction outliers
+df_case20 = df_case20.withColumn(
+    "_has_outlier",
+    rand(seed) < case20_config['outlier_rate']
+).withColumn(
+    "fuel_consumption_ecol",
+    when(col("_has_outlier"), (col("fuel_consumption") * outlier_multiplier).cast("long")).otherwise(col("fuel_consumption"))
+).withColumn(
+    "fuel_consumption_ecor",
+    when(col("_has_outlier"), (col("fuel_consumption") * outlier_multiplier).cast("long")).otherwise(col("fuel_consumption"))
+).withColumn(
+    "fuel_consumption_fms_high",
+    when(col("_has_outlier"), (col("fuel_consumption") * outlier_multiplier).cast("long")).otherwise(col("fuel_consumption"))
+).drop("_has_outlier")
+
+print(f"Rows with prediction outliers: {int(df_case20.count() * case20_config['outlier_rate'])}")
+
+(
+    df_case20
+    .write
+    .mode("append")
+    .format("delta")
+    .saveAsTable("bms_ds_prod.bms_ds_dasc.temp_fault_injection_training")
+)
+
+print("✓ Case 20 saved")
 
 # COMMAND ----------
 
@@ -383,10 +583,45 @@ print(f"Rows with duration anomalies: {int(df_case11.count() * case11_config['an
     .write
     .mode("append")
     .format("delta")
-    .saveAsTable("bms_ds_prod.bms_ds_dasc.temp_test_cases")
+    .saveAsTable("bms_ds_prod.bms_ds_dasc.temp_fault_injection_training")
 )
 
 print("✓ Case 11 saved")
+
+# COMMAND ----------
+
+case21_config = TEST_CASES["case21"]
+df_case21 = spark.sql(f"select * from bms_ds_bronze.trips where date = '{case21_config['date']}'")
+
+print(f"Case 11: {case21_config['name']} ({case21_config['date']})")
+print(f"Original count: {df_case21.count()}")
+
+seed = 46
+anomaly_hours = 6  # Add random hours to duration
+
+# Inject duration anomalies
+df_case21 = df_case21.withColumn(
+    "_has_duration_anomaly",
+    rand(seed) < case21_config['anomaly_rate']
+).withColumn(
+    "end",
+    when(
+        col("_has_duration_anomaly"),
+        expr(f"date_add(end, {anomaly_hours})")
+    ).otherwise(col("end"))
+).drop("_has_duration_anomaly")
+
+print(f"Rows with duration anomalies: {int(df_case21.count() * case21_config['anomaly_rate'])}")
+
+(
+    df_case21
+    .write
+    .mode("append")
+    .format("delta")
+    .saveAsTable("bms_ds_prod.bms_ds_dasc.temp_fault_injection_training")
+)
+
+print("✓ Case 21 saved")
 
 # COMMAND ----------
 
@@ -434,10 +669,50 @@ print(f"Rows with timestamp inconsistencies: {int(df_case12.count() * case12_con
     .write
     .mode("append")
     .format("delta")
-    .saveAsTable("bms_ds_prod.bms_ds_dasc.temp_test_cases")
+    .saveAsTable("bms_ds_prod.bms_ds_dasc.temp_fault_injection_training")
 )
 
 print("✓ Case 12 saved")
+
+# COMMAND ----------
+
+case22_config = TEST_CASES["case22"]
+df_case22 = spark.sql(f"select * from bms_ds_bronze.trips where date = '{case22_config['date']}'")
+
+print(f"Case 12: {case22_config['name']} ({case22_config['date']})")
+print(f"Original count: {df_case22.count()}")
+
+seed = 47
+
+# Inject timestamp inconsistencies (both start and end offset)
+df_case22 = df_case22.withColumn(
+    "_has_inconsistency",
+    rand(seed) < case22_config['inconsistency_rate']
+).withColumn(
+    "start",
+    when(
+        col("_has_inconsistency"),
+        expr("date_sub(start, 1)")  # Start 1 day earlier
+    ).otherwise(col("start"))
+).withColumn(
+    "end",
+    when(
+        col("_has_inconsistency"),
+        expr("date_add(end, 1)")  # End 1 day later
+    ).otherwise(col("end"))
+).drop("_has_inconsistency")
+
+print(f"Rows with timestamp inconsistencies: {int(df_case22.count() * case22_config['inconsistency_rate'])}")
+
+(
+    df_case22
+    .write
+    .mode("append")
+    .format("delta")
+    .saveAsTable("bms_ds_prod.bms_ds_dasc.temp_fault_injection_training")
+)
+
+print("✓ Case 22 saved")
 
 # COMMAND ----------
 
@@ -458,23 +733,26 @@ print("✓ Case 12 saved")
 
 # COMMAND ----------
 
+# DBTITLE 1,Cell 27
 case13_config = TEST_CASES["case13"]
 df_case13 = spark.sql(f"select * from bms_ds_bronze.trips where date = '{case13_config['date']}'")
 
-print(f"Case 13: {case13_config['name']} ({case13_config['date']})")
+print(f"Case 13: {case13_config['name']} ({case13_config['date']})") 
 print(f"Original count: {df_case13.count()}")
 
 seed = 48
 
 # Simulate aggregation errors by duplicating rows
-df_case13 = df_case13.withColumn(
+df_case13_marked = df_case13.withColumn(
     "_has_aggregation_error",
     rand(seed) < case13_config['error_rate']
-).filter(
+)
+
+df_case13 = df_case13_marked.filter(
     ~col("_has_aggregation_error")  # Keep the base rows
 ).union(
-    df_case13.filter(col("_has_aggregation_error")).union(
-        df_case13.filter(col("_has_aggregation_error"))  # Duplicate these rows
+    df_case13_marked.filter(col("_has_aggregation_error")).union(
+        df_case13_marked.filter(col("_has_aggregation_error"))  # Duplicate these rows
     )
 ).drop("_has_aggregation_error")
 
@@ -485,7 +763,7 @@ print(f"Rows (after duplication): {df_case13.count()}")
     .write
     .mode("append")
     .format("delta")
-    .saveAsTable("bms_ds_prod.bms_ds_dasc.temp_test_cases")
+    .saveAsTable("bms_ds_prod.bms_ds_dasc.temp_fault_injection_training")
 )
 
 print("✓ Case 13 saved")
@@ -516,11 +794,11 @@ df_case14 = df_case14.withColumn(
     "_has_join_failure",
     rand(seed) < case14_config['failure_rate']
 ).withColumn(
-    "vehicle_id",
+    "unit_id",
     when(
         col("_has_join_failure"),
-        col("vehicle_id") * 1000  # Corrupt ID so join fails
-    ).otherwise(col("vehicle_id"))
+        concat(col("unit_id"), lit("qwertyuiop"))  # Corrupt ID so join fails
+    ).otherwise(col("unit_id"))
 ).drop("_has_join_failure")
 
 print(f"Rows with join failures: {int(df_case14.count() * case14_config['failure_rate'])}")
@@ -530,7 +808,7 @@ print(f"Rows with join failures: {int(df_case14.count() * case14_config['failure
     .write
     .mode("append")
     .format("delta")
-    .saveAsTable("bms_ds_prod.bms_ds_dasc.temp_test_cases")
+    .saveAsTable("bms_ds_prod.bms_ds_dasc.temp_fault_injection_training")
 )
 
 print("✓ Case 14 saved")
@@ -567,7 +845,7 @@ print(f"Rows (after duplication): {df_case15.count()}")
     .write
     .mode("append")
     .format("delta")
-    .saveAsTable("bms_ds_prod.bms_ds_dasc.temp_test_cases")
+    .saveAsTable("bms_ds_prod.bms_ds_dasc.temp_fault_injection_training")
 )
 
 print("✓ Case 15 saved")
@@ -582,14 +860,223 @@ print("✓ Case 15 saved")
 print("="*70)
 print("TEST CASE INJECTION COMPLETE")
 print("="*70)
-print(f"\n✓ All 15 test cases injected into temp_test_cases table")
+print(f"\n✓ All 15 test cases injected into temp_fault_injection_training table")
 print(f"\nNext steps:")
 print(f"1. Run ETL pipeline on these dates to generate metrics")
 print(f"2. Run RCA evaluation notebook with these test cases")
 print(f"3. Evaluate causal discovery accuracy")
 
-final_count = spark.sql("select count(distinct date) as date_count, count(*) as row_count from bms_ds_prod.bms_ds_dasc.temp_test_cases").collect()
+final_count = spark.sql("select count(distinct date) as date_count, count(*) as row_count from bms_ds_prod.bms_ds_dasc.temp_fault_injection_training").collect()
 print(f"\nTemp table stats:")
 for row in final_count:
     print(f"  Unique dates: {row['date_count']}")
     print(f"  Total rows: {row['row_count']}")
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC # Appendix
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC select metric_name
+# MAGIC from bms_ds_dasc.temp_raw_metrics
+# MAGIC group by metric_name
+# MAGIC having min(metric_value) = 0 and max(metric_value) = 0
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC select *
+# MAGIC from bms_ds_dasc.temp_raw_metrics
+# MAGIC where date = '2026-02-06' 
+# MAGIC and pipeline_stage = 'raw'
+
+# COMMAND ----------
+
+# %sql
+# insert into bms_ds_dasc.temp_raw_metrics
+# select * from (select 
+#   date,
+#   "raw" as pipeline_stage,
+#   metric_name,
+#   metric_value, 
+#   now() as created_at 
+# from (
+#   select 
+#     date,
+#     mean(fuel_consumption_ecol) as mean_fuel_consumption_ecol,
+#     std(fuel_consumption_ecol) as std_fuel_consumption_ecol,
+#     mean(fuel_consumption_ecor) as mean_fuel_consumption_ecor,
+#     std(fuel_consumption_ecor) as std_fuel_consumption_ecor,
+#     mean(fuel_consumption_fms_high) as mean_fuel_consumption_fms_high,
+#     std(fuel_consumption_fms_high) as std_fuel_consumption_fms_high
+#   from bms_ds_prod.bms_ds_dasc.temp_telematics_raw
+#   group by date
+# ) t
+# unpivot (
+#   metric_value for metric_name in (
+#     mean_fuel_consumption_ecol,
+#     std_fuel_consumption_ecol,
+#     mean_fuel_consumption_ecor,
+#     std_fuel_consumption_ecor,
+#     mean_fuel_consumption_fms_high,
+#     std_fuel_consumption_fms_high
+#   )
+# ))
+
+# union all
+
+# (select 
+#   date,
+#   "bronze" as pipeline_stage,
+#   metric_name,
+#   metric_value, 
+#   now() as created_at 
+# from (
+#   select 
+#     date,
+#     mean(fuel_consumption_ecol) as mean_fuel_consumption_ecol,
+#     std(fuel_consumption_ecol) as std_fuel_consumption_ecol,
+#     mean(fuel_consumption_ecor) as mean_fuel_consumption_ecor,
+#     std(fuel_consumption_ecor) as std_fuel_consumption_ecor,
+#     mean(fuel_consumption_fms_high) as mean_fuel_consumption_fms_high,
+#     std(fuel_consumption_fms_high) as std_fuel_consumption_fms_high
+#   from bms_ds_prod.bms_ds_dasc.temp_telematics_bronze
+#   group by date
+# ) t
+# unpivot (
+#   metric_value for metric_name in (
+#     mean_fuel_consumption_ecol,
+#     std_fuel_consumption_ecol,
+#     mean_fuel_consumption_ecor,
+#     std_fuel_consumption_ecor,
+#     mean_fuel_consumption_fms_high,
+#     std_fuel_consumption_fms_high
+#   )
+# ))
+
+# COMMAND ----------
+
+# DBTITLE 1,Untitled
+# MAGIC %sql
+# MAGIC select date, pipeline_stage, count(*) from ((select 
+# MAGIC   date,
+# MAGIC   "raw" as pipeline_stage,
+# MAGIC   metric_name,
+# MAGIC   metric_value, 
+# MAGIC   now() as created_at 
+# MAGIC from (
+# MAGIC   select 
+# MAGIC     date,
+# MAGIC     mean(fuel_consumption_ecol) as mean_fuel_consumption_ecol,
+# MAGIC     std(fuel_consumption_ecol) as std_fuel_consumption_ecol,
+# MAGIC     mean(fuel_consumption_ecor) as mean_fuel_consumption_ecor,
+# MAGIC     std(fuel_consumption_ecor) as std_fuel_consumption_ecor,
+# MAGIC     mean(fuel_consumption_fms_high) as mean_fuel_consumption_fms_high,
+# MAGIC     std(fuel_consumption_fms_high) as std_fuel_consumption_fms_high
+# MAGIC   from bms_ds_prod.bms_ds_dasc.temp_telematics_raw
+# MAGIC   where date between "2025-10-01" and "2025-10-18"
+# MAGIC   group by date
+# MAGIC ) t
+# MAGIC unpivot (
+# MAGIC   metric_value for metric_name in (
+# MAGIC     mean_fuel_consumption_ecol,
+# MAGIC     std_fuel_consumption_ecol,
+# MAGIC     mean_fuel_consumption_ecor,
+# MAGIC     std_fuel_consumption_ecor,
+# MAGIC     mean_fuel_consumption_fms_high,
+# MAGIC     std_fuel_consumption_fms_high
+# MAGIC   )
+# MAGIC ))
+# MAGIC
+# MAGIC union all
+# MAGIC
+# MAGIC (select 
+# MAGIC   date,
+# MAGIC   "bronze" as pipeline_stage,
+# MAGIC   metric_name,
+# MAGIC   metric_value, 
+# MAGIC   now() as created_at 
+# MAGIC from (
+# MAGIC   select 
+# MAGIC     date,
+# MAGIC     mean(fuel_consumption_ecol) as mean_fuel_consumption_ecol,
+# MAGIC     std(fuel_consumption_ecol) as std_fuel_consumption_ecol,
+# MAGIC     mean(fuel_consumption_ecor) as mean_fuel_consumption_ecor,
+# MAGIC     std(fuel_consumption_ecor) as std_fuel_consumption_ecor,
+# MAGIC     mean(fuel_consumption_fms_high) as mean_fuel_consumption_fms_high,
+# MAGIC     std(fuel_consumption_fms_high) as std_fuel_consumption_fms_high
+# MAGIC   from bms_ds_prod.bms_ds_dasc.temp_telematics_bronze
+# MAGIC   where date between "2025-10-01" and "2025-10-18"
+# MAGIC   group by date
+# MAGIC ) t
+# MAGIC unpivot (
+# MAGIC   metric_value for metric_name in (
+# MAGIC     mean_fuel_consumption_ecol,
+# MAGIC     std_fuel_consumption_ecol,
+# MAGIC     mean_fuel_consumption_ecor,
+# MAGIC     std_fuel_consumption_ecor,
+# MAGIC     mean_fuel_consumption_fms_high,
+# MAGIC     std_fuel_consumption_fms_high
+# MAGIC   )
+# MAGIC )))
+# MAGIC group by date, pipeline_stage
+
+# COMMAND ----------
+
+
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC select 
+# MAGIC   date,
+# MAGIC   "bronze" as pipeline_stage,
+# MAGIC   metric_name,
+# MAGIC   metric_value, 
+# MAGIC   now() as created_at 
+# MAGIC from (
+# MAGIC   select 
+# MAGIC     date,
+# MAGIC     mean(fuel_consumption_ecol) as mean_fuel_consumption_ecol,
+# MAGIC     std(fuel_consumption_ecol) as std_fuel_consumption_ecol,
+# MAGIC     mean(fuel_consumption_ecor) as mean_fuel_consumption_ecor,
+# MAGIC     std(fuel_consumption_ecor) as std_fuel_consumption_ecor,
+# MAGIC     mean(fuel_consumption_fms_high) as mean_fuel_consumption_fms_high,
+# MAGIC     std(fuel_consumption_fms_high) as std_fuel_consumption_fms_high
+# MAGIC   from bms_ds_prod.bms_ds_dasc.temp_telematics_bronze
+# MAGIC   group by date
+# MAGIC ) t
+# MAGIC unpivot (
+# MAGIC   metric_value for metric_name in (
+# MAGIC     mean_fuel_consumption_ecol,
+# MAGIC     std_fuel_consumption_ecol,
+# MAGIC     mean_fuel_consumption_ecor,
+# MAGIC     std_fuel_consumption_ecor,
+# MAGIC     mean_fuel_consumption_fms_high,
+# MAGIC     std_fuel_consumption_fms_high
+# MAGIC   )
+# MAGIC )
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC select * 
+# MAGIC from bms_ds_prod.bms_ds_dasc.temp_raw_metrics 
+# MAGIC where date = '2025-10-20' --and pipeline_stage = 'bronze'
+
+# COMMAND ----------
+
+# %sql
+# UPDATE bms_ds_prod.bms_ds_dasc.temp_raw_metrics
+# SET metric_name = concat(pipeline_stage, '_', metric_name)
+# WHERE metric_name IN (
+#   'mean_fuel_consumption_ecol',
+#   'std_fuel_consumption_ecol',
+#   'mean_fuel_consumption_ecor',
+#   'std_fuel_consumption_ecor',
+#   'mean_fuel_consumption_fms_high',
+#   'std_fuel_consumption_fms_high'
+# )

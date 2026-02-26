@@ -1,0 +1,202 @@
+{
+  "raw_std_fuel_consumption_ecol": [
+    "bronze_std_fuel_consumption_ecol"
+  ],
+  "bronze_std_fuel_consumption_ecol": [
+    "raw_std_fuel_consumption_ecol",
+    "bronze_mean_fuel_consumption_ecol"
+  ],
+  "raw_mean_fuel_consumption_fms_high": [
+    "bronze_mean_fuel_consumption_fms_high",
+    "bronze_mean_fuel_consumption_ecor",
+    "bronze_std_fuel_consumption_fms_high",
+    "raw_std_fuel_consumption_fms_high"
+  ],
+  "bronze_mean_fuel_consumption_fms_high": [
+    "raw_mean_fuel_consumption_fms_high",
+    "bronze_std_fuel_consumption_fms_high"
+  ],
+  "raw_std_fuel_consumption_ecor": [
+    "raw_mean_fuel_consumption_ecor",
+    "raw_max_trip_end_ts",
+    "raw_distance_mean"
+  ],
+  "raw_mean_fuel_consumption_ecor": [
+    "raw_std_fuel_consumption_ecor",
+    "bronze_distance_km_mean",
+    "raw_ingestion_duration_sec"
+  ],
+  "raw_avg_speed_std": [
+    "raw_avg_speed_mean",
+    "silver_avg_speed_imputed"
+  ],
+  "raw_avg_speed_mean": [
+    "raw_avg_speed_std",
+    "silver_avg_speed_imputed"
+  ],
+  "bronze_distance_km_std": [
+    "bronze_distance_km_mean",
+    "raw_max_trip_end_ts"
+  ],
+  "bronze_distance_km_mean": [
+    "bronze_distance_km_std",
+    "raw_mean_fuel_consumption_ecor",
+    "raw_max_trip_end_ts"
+  ],
+  "silver_vehicle_info_join_miss_rate": [
+    "raw_max_trip_end_ts",
+    "bronze_mean_fuel_consumption_ecol",
+    "silver_vehicle_type_nulls"
+  ],
+  "raw_max_trip_end_ts": [
+    "silver_vehicle_info_join_miss_rate",
+    "raw_std_fuel_consumption_ecor",
+    "bronze_distance_km_std",
+    "bronze_distance_km_mean",
+    "mean_idling_per_100km"
+  ],
+  "bronze_std_fuel_consumption_fms_high": [
+    "bronze_mean_fuel_consumption_fms_high",
+    "bronze_input_rows",
+    "raw_mean_fuel_consumption_fms_high"
+  ],
+  "silver_ml_percentage_error_mean": [
+    "silver_ml_imputed_fuel_mean",
+    "silver_ml_residual_std",
+    "silver_ml_prediction_mean",
+    "bronze_std_fuel_consumption_ecor"
+  ],
+  "silver_ml_imputed_fuel_mean": [
+    "silver_ml_percentage_error_mean",
+    "silver_ml_prediction_mean",
+    "silver_ml_imputed_fuel_std"
+  ],
+  "bronze_std_fuel_consumption_ecor": [
+    "bronze_mean_fuel_consumption_ecor",
+    "silver_ml_residual_std",
+    "raw_distance_mean",
+    "silver_ml_percentage_error_mean"
+  ],
+  "bronze_mean_fuel_consumption_ecor": [
+    "bronze_std_fuel_consumption_ecor",
+    "raw_distance_mean",
+    "mean_idling_per_100km",
+    "bronze_mean_fuel_consumption_ecol",
+    "raw_mean_fuel_consumption_fms_high",
+    "silver_ml_prediction_mean"
+  ],
+  "silver_ml_prediction_mean": [
+    "silver_ml_imputed_fuel_mean",
+    "silver_ml_residual_std",
+    "silver_ml_imputed_fuel_std",
+    "silver_ml_percentage_error_mean",
+    "bronze_mean_fuel_consumption_ecor"
+  ],
+  "silver_ml_imputed_fuel_std": [
+    "silver_ml_imputed_fuel_mean",
+    "silver_ml_prediction_mean",
+    "mean_fuel_per_100km"
+  ],
+  "silver_avg_speed_imputed": [
+    "raw_avg_speed_mean",
+    "raw_null_count_avg_speed",
+    "raw_avg_speed_std",
+    "silver_fuel_ecol_available"
+  ],
+  "silver_ingestion_duration_sec": [
+    "bronze_ingestion_duration_sec",
+    "raw_ingestion_duration_sec"
+  ],
+  "bronze_ingestion_duration_sec": [
+    "silver_ingestion_duration_sec",
+    "silver_fuel_ecol_available",
+    "bronze_input_rows"
+  ],
+  "bronze_duration_std": [
+    "bronze_duration_mean",
+    "raw_min_trip_start_ts",
+    "bronze_survival_rate"
+  ],
+  "bronze_duration_mean": [
+    "bronze_duration_std"
+  ],
+  "silver_fuel_ecol_available": [
+    "bronze_input_rows",
+    "bronze_excessive_daily_events_units",
+    "silver_vehicle_type_nulls",
+    "bronze_ingestion_duration_sec",
+    "silver_avg_speed_imputed"
+  ],
+  "bronze_input_rows": [
+    "silver_fuel_ecol_available",
+    "mean_fuel_per_100km",
+    "silver_vehicle_type_nulls",
+    "bronze_std_fuel_consumption_fms_high",
+    "bronze_ingestion_duration_sec"
+  ],
+  "silver_ml_residual_std": [
+    "bronze_std_fuel_consumption_ecor",
+    "silver_ml_prediction_mean",
+    "silver_ml_percentage_error_mean",
+    "mean_fuel_per_100km"
+  ],
+  "silver_vehicle_type_nulls": [
+    "bronze_excessive_daily_events_units",
+    "silver_fuel_ecol_available",
+    "bronze_input_rows",
+    "mean_fuel_per_100km",
+    "silver_vehicle_info_join_miss_rate"
+  ],
+  "bronze_excessive_daily_events_units": [
+    "silver_vehicle_type_nulls",
+    "bronze_survival_rate",
+    "silver_fuel_ecol_available"
+  ],
+  "raw_ingestion_duration_sec": [
+    "silver_ingestion_duration_sec",
+    "raw_mean_fuel_consumption_ecor"
+  ],
+  "mean_fuel_per_100km": [
+    "bronze_input_rows",
+    "silver_vehicle_type_nulls",
+    "silver_ml_residual_std",
+    "silver_ml_imputed_fuel_std"
+  ],
+  "bronze_survival_rate": [
+    "bronze_excessive_daily_events_units",
+    "bronze_correction_trips_removed",
+    "bronze_duration_std"
+  ],
+  "raw_null_count_avg_speed": [
+    "silver_avg_speed_imputed"
+  ],
+  "mean_idling_per_100km": [
+    "bronze_idle_time_invalid_corrected",
+    "bronze_mean_fuel_consumption_ecor",
+    "raw_distance_mean",
+    "raw_max_trip_end_ts"
+  ],
+  "bronze_idle_time_invalid_corrected": [
+    "mean_idling_per_100km"
+  ],
+  "raw_min_trip_start_ts": [
+    "bronze_duration_std"
+  ],
+  "bronze_correction_trips_removed": [
+    "bronze_survival_rate"
+  ],
+  "bronze_mean_fuel_consumption_ecol": [
+    "silver_vehicle_info_join_miss_rate",
+    "bronze_mean_fuel_consumption_ecor",
+    "bronze_std_fuel_consumption_ecol"
+  ],
+  "raw_distance_mean": [
+    "bronze_mean_fuel_consumption_ecor",
+    "raw_std_fuel_consumption_ecor",
+    "mean_idling_per_100km",
+    "bronze_std_fuel_consumption_ecor"
+  ],
+  "raw_std_fuel_consumption_fms_high": [
+    "raw_mean_fuel_consumption_fms_high"
+  ]
+}

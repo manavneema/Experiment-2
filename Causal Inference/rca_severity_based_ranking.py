@@ -140,6 +140,19 @@ GRAPH_REGISTRY = {
         "baseline_stats": "baseline_stats.json",
         "traversal_method": "downstream",  # DAG uses downstream traversal
     },
+    # New v3 pipeline folder – artifacts created by causal_discovery_v3_scalable.py
+    "hybrid_v3_filtered": {
+        "name": "Hybrid PC-NOTEARS-Bootstrap v3 (Filtered)",
+        "algorithm": "Hybrid_PC_NOTEARS_Bootstrap_v3",
+        "folder": "Hybrid_PC_NOTEARS_Bootstrap_v3",
+        "edge_type": "directed",  # True DAG with bootstrap-stable edges
+        "weight_column": "abs_weight",
+        "edge_file": "hybrid_causal_edges.csv",
+        "upstream_map": "upstream_map.json",
+        "downstream_map": "downstream_map.json",
+        "baseline_stats": "baseline_stats.json",
+        "traversal_method": "downstream",  # DAG uses downstream traversal
+    },
 }
 
 # ===========================
@@ -165,6 +178,10 @@ GRAPHS_TO_EVALUATE = {
     "notears_filtered": False,
     "notears_raw": False,
     
+    # Hybrid graphs
+    "hybrid_filtered": False,          # original pipeline (v2)
+    "hybrid_v3_filtered": True,        # new v3 artifacts
+    
     # Hybrid PC-NOTEARS-Bootstrap (Pipeline D) - NEW
     "hybrid_filtered": True,
 }
@@ -173,7 +190,11 @@ GRAPHS_TO_EVALUATE = {
 # TEST SCENARIOS
 # ===========================
 # Test dates to evaluate (supports multiple test cases in single run)
-TEST_DATES = ["2026-02-06", "2026-02-09", "2026-02-10", "2026-02-11"]
+# This variable is initially declared here for readability but is overwritten
+# later once the ground truth configuration is imported.  The dynamic
+# assignment ensures the notebook automatically covers every case defined in
+# `test_case_ground_truth.py`.
+TEST_DATES = []  # will be populated from ground truth below
 
 # ===========================
 # ANOMALY DETECTION THRESHOLDS
@@ -203,18 +224,9 @@ active_graphs = [k for k, v in GRAPHS_TO_EVALUATE.items() if v]
 print("="*70)
 print("EVALUATION CONFIGURATION")
 print("="*70)
-print(f"\nGraphs to evaluate ({len(active_graphs)} selected):")
-for g in active_graphs:
-    print("\n")
-    for k, v in GRAPH_REGISTRY[g].items():
-            print(f"{k}: {v}")
-
-print(f"\nTest dates: {TEST_DATES}")
-print(f"Z-score threshold: {Z_SCORE_THRESHOLD}")
-print(f"IQR multiplier: {IQR_MULTIPLIER}")
-print(f"Max traversal depth: {MAX_DEPTH}")
-print(f"Decay factor: {DECAY_FACTOR}")
-print(f"Severity weighting: {'ENABLED (CloudRanger approach)' if USE_SEVERITY_WEIGHTING else 'DISABLED (uniform)'}")
+print(f"Graphs to evaluate: {', '.join(active_graphs)}")
+print(f"Total test dates: {len(TEST_DATES)}")
+print(f"Severity weighting: {'ENABLED' if USE_SEVERITY_WEIGHTING else 'DISABLED'}")
 
 # COMMAND ----------
 
@@ -227,71 +239,138 @@ print(f"Severity weighting: {'ENABLED (CloudRanger approach)' if USE_SEVERITY_WE
 # GROUND TRUTH
 # ===========================
 
-# Ground truth definitions for each test case.
-# Labels are determined by SEMANTIC ANALYSIS (what the metric directly measures),
-# NOT by observed anomaly magnitudes. This is critical for valid evaluation.
-# 
-# NOTE: These test cases correspond to fault injection functions in fault_injection_logic.py
-# Run the fault injection on raw trip data, pass through ETL, then evaluate here.
+# Explicitly hard‑coded ground truth for each test case.  This section mirrors
+# the comprehensive configuration previously maintained in a separate module,
+# but is embedded here as requested so the notebook is self‑contained.
+#
+# Each entry includes the fault date and the set of true root metrics.  Only
+# those two fields are used during RCA evaluation; additional metadata may
+# exist in the original external file.
 
 GROUND_TRUTH = {
-    # ---------------------------------------------------------
-    # CASE 1: Raw Data Quality - NULL Injection (unit_id)
-    # ---------------------------------------------------------
     "case1_unit_id_nulls": {
-        "description": "40% of unit_id values set to NULL",
-        "true_roots": {
-            "raw_null_count_unit_id",  # Has edge to bronze_null_primary_key_rows
-        },
+        "description": "40% of unit_id values set to NULL (primary key failure)",
+        "true_roots": {"raw_null_count_unit_id"},
         "test_date": "2026-02-06"
     },
-    
-    # ---------------------------------------------------------
-    # CASE 2: Raw Data Quality - Distance/GPS Issues
-    # ---------------------------------------------------------
     "case2_distance_gps_nulls": {
-        "description": "Mixed evaluation 35% of rows have null gps_coverage and start_lat/long values",
-        "true_roots": {
-            "raw_null_count_distance",
-            "raw_null_count_start_longitude",
-            "raw_distance_mean",  
-        },
+        "description": "35% of rows have null distance, start_latitude, start_longitude (GPS coverage loss)",
+        "true_roots": {"raw_null_count_gps_coverage", "raw_null_count_start", "raw_distance_std"},
         "test_date": "2026-02-09"
     },
-    
-    # ---------------------------------------------------------
-    # CASE 3: ML Layer - Fuel Sensor Drift
-    # ---------------------------------------------------------
     "case3_fuel_sensor_drift": {
         "description": "15% of fuel readings show 2-3.5x drift (sensor calibration failure)",
-        "true_roots": {
-            "silver_ml_large_error_count",  # ML detects prediction errors from bad fuel
-            "p95_fuel_per_100km",            # KPI affected by drift
-        },
+        "true_roots": {"silver_ml_large_error_count", "p95_fuel_per_100km"},
         "test_date": "2026-02-10"
     },
-    
-    # ---------------------------------------------------------
-    # CASE 4: Temporal - Clock Synchronization Failure
-    # ---------------------------------------------------------
     "case4_clock_skew": {
-        "description": "Device clock sync failure: 10% future dates, 10% negative durations",
-        "true_roots": {
-            "raw_max_trip_end_ts",           # Shows future timestamps
-            "bronze_rows_dropped_by_rules",  # Validation catches bad durations
-        },
+        "description": "Device clock sync failure: 10% future dates, 10% negative durations (temporal inconsistency)",
+        "true_roots": {"raw_max_trip_end_ts", "bronze_rows_dropped_by_rules"},
         "test_date": "2026-02-11"
     },
+    "case5_sensor_reads_nulls": {
+        "description": "Sensor calibration failure: fuel_consumption_ecol/ecor/fms_high set to NULL (35% rate)",
+        "true_roots": {"raw_mean_fuel_consumption_ecol"},
+        "test_date": "2025-10-01"
+    },
+    "case6_vehicle_id_nulls": {
+        "description": "Vehicle master data sync failure: 25% of vehicle_id values set to NULL",
+        "true_roots": {"raw_null_count_unit_id"},
+        "test_date": "2025-10-02"
+    },
+    "case7_extreme_values": {
+        "description": "Sensor noise: 20% of rows have extreme values (10x normal) in speed and fuel",
+        "true_roots": {"raw_avg_speed_mean", "raw_std_fuel_consumption_ecol"},
+        "test_date": "2025-10-03"
+    },
+    "case8_invalid_ranges": {
+        "description": "Data entry errors: 30% of rows have invalid ranges (start AFTER end, negative durations)",
+        "true_roots": {"bronze_duration_mean", "bronze_rows_dropped_by_rules"},
+        "test_date": "2025-10-04"
+    },
+    "case9_speed_prediction_drift": {
+        "description": "ML model drift: 20% of trips have speed predictions 1.5-2.5x actual (model degradation)",
+        "true_roots": {"silver_ml_large_error_count", "silver_ml_prediction_std"},
+        "test_date": "2025-10-05"
+    },
+    "case10_prediction_outliers": {
+        "description": "ML edge case failure: 15% of rows have extreme predictions (20x normal) from ML model",
+        "true_roots": {"silver_ml_large_error_count"},
+        "test_date": "2025-10-06"
+    },
+    "case11_duration_anomalies": {
+        "description": "GPS tracking loss: 20% of rows have anomalous durations (6+ hours added)",
+        "true_roots": {"bronze_duration_mean", "bronze_duration_std"},
+        "test_date": "2025-10-07"
+    },
+    "case12_timestamp_inconsistencies": {
+        "description": "Multi-device sync failure: 25% of rows have timestamp inconsistencies (start/end offsets)",
+        "true_roots": {"raw_max_trip_end_ts"},
+        "test_date": "2025-10-08"
+    },
+    "case13_aggregation_errors": {
+        "description": "Aggregation window misconfiguration: 15% of rows duplicated",
+        "true_roots": {"bronze_duplicate_rows_removed"},
+        "test_date": "2025-10-09"
+    },
+    "case14_join_failures": {
+        "description": "Vehicle master data incomplete: 20% join failures in bronze→silver (vehicle master data mismatch)",
+        "true_roots": {"silver_vehicle_info_join_miss_rate"},
+        "test_date": "2025-10-10"
+    },
+    "case15_duplicate_handling": {
+        "description": "Deduplication failure: 30% of rows duplicated (both versions reach KPIs)",
+        "true_roots": {"bronze_duplicate_rows_removed"},
+        "test_date": "2025-10-11"
+    },
+    "case16_vehicle_id_nulls_low": {
+        "description": "Vehicle master data sync failure (low-severity): 5% of vehicle_id values set to NULL",
+        "true_roots": {"raw_null_count_unit_id"},
+        "test_date": "2025-10-12"
+    },
+    "case17_extreme_values_low": {
+        "description": "Sensor noise (low-severity): 5% of rows have extreme values (10x normal) in speed and fuel",
+        "true_roots": {"raw_avg_speed_mean", "raw_std_fuel_consumption_ecol"},
+        "test_date": "2025-10-13"
+    },
+    "case18_invalid_ranges_low": {
+        "description": "Data entry errors (low-severity): 10% of rows have invalid ranges (start AFTER end, negative durations)",
+        "true_roots": {"bronze_duration_mean", "bronze_rows_dropped_by_rules"},
+        "test_date": "2025-10-14"
+    },
+    "case19_speed_prediction_drift_low": {
+        "description": "ML model drift (low-severity): 10% of trips have speed predictions 1.5-2.5x actual",
+        "true_roots": {"silver_ml_large_error_count", "silver_ml_prediction_std"},
+        "test_date": "2025-10-15"
+    },
+    "case20_prediction_outliers_low": {
+        "description": "ML edge case failure (low-severity): 5% of rows have extreme predictions (20x normal)",
+        "true_roots": {"silver_ml_large_error_count"},
+        "test_date": "2025-10-16"
+    },
+    "case21_duration_anomalies_low": {
+        "description": "GPS tracking loss (low-severity): 10% of rows have anomalous durations (6+ hours added)",
+        "true_roots": {"bronze_duration_mean", "bronze_duration_std"},
+        "test_date": "2025-10-17"
+    },
+    "case22_timestamp_inconsistencies_low": {
+        "description": "Multi-device sync failure (low-severity): 15% of rows have timestamp inconsistencies (start/end offsets)",
+        "true_roots": {"raw_max_trip_end_ts"},
+        "test_date": "2025-10-18"
+    }
 }
 
-# Map test dates to their ground truth case
+# derive mapping and static date list
 DATE_TO_CASE = {v["test_date"]: k for k, v in GROUND_TRUTH.items()}
+TEST_DATES = sorted(DATE_TO_CASE.keys())
 
 print("\nGround Truth Cases:")
 for case_name, case_info in GROUND_TRUTH.items():
     print(f"  {case_name} ({case_info['test_date']}): {len(case_info['true_roots'])} root causes")
     for root in case_info['true_roots']:
         print(f"    - {root}")
+
+print(f"\nStatic test dates: {TEST_DATES}")
 
 # COMMAND ----------
 
@@ -713,7 +792,7 @@ def score_candidates_upstream(
                     propagated_score = score * decay * weight
                     queue.append((parent, depth + 1, propagated_score))
     
-    # Apply self-anomaly bonus (scaled by own severity) and convert to regular dict
+    # Apply self-anomaly bonus (scaled by own severity) and hub penalty, then convert to regular dict
     final_scores = {}
     for candidate, score in candidate_scores.items():
         if candidate in anomalous_metrics:
@@ -951,108 +1030,17 @@ else:
                 # Print evaluation summary
                 if metrics:
                     print(f"\n  Evaluation Summary:")
+                    print(f"    Top-1 Accuracy: {metrics.get('top1_accuracy', 0):.3f}")
                     print(f"    Top-3 Accuracy: {metrics.get('top3_accuracy', 0):.3f}")
+                    print(f"    Top-5 Accuracy: {metrics.get('top5_accuracy', 0):.3f}")
                     print(f"    MRR: {metrics.get('mrr', 0):.3f}")
                     print(f"    Recall@5: {metrics.get('recall@5', 0):.3f}")
                     for root, rank in metrics.get('root_ranks', {}).items():
                         status = "✓" if rank <= 3 else "⚠️" if rank <= 10 else "✗"
                         print(f"    {status} {root}: Rank {rank}")
 
-# COMMAND ----------
 
 print(f"\n✓ Evaluation complete: {len(all_results)} graph-date combinations evaluated")
-
-# COMMAND ----------
-
-# ===========================
-# INDIVIDUAL TEST CASE SUMMARY TABLE
-# ===========================
-
-if all_results:
-    print("\n" + "="*120)
-    print("INDIVIDUAL TEST CASE RESULTS")
-    print("="*120)
-    
-    # Build summary table
-    summary_rows = []
-    for result in all_results:
-        # Get root ranks for display
-        root_ranks = result.get('root_ranks', {})
-        best_rank = min(root_ranks.values()) if root_ranks else 999
-        roots_in_top3 = sum(1 for r in root_ranks.values() if r <= 3)
-        roots_in_top5 = sum(1 for r in root_ranks.values() if r <= 5)
-        total_roots = len(root_ranks)
-        
-        summary_rows.append({
-            'Test Case': result.get('test_case', 'N/A'),
-            'Date': result.get('test_date', 'N/A'),
-            'Graph': result.get('graph_name', 'N/A').replace('Hybrid PC-NOTEARS-Bootstrap (Filtered)', 'Hybrid'),
-            'Anomalies': result.get('num_anomalies', 0),
-            'Top-1': f"{result.get('top1_accuracy', 0):.0%}",
-            'Top-3': f"{result.get('top3_accuracy', 0):.0%}",
-            'Top-5': f"{result.get('top5_accuracy', 0):.0%}",
-            'MRR': f"{result.get('mrr', 0):.3f}",
-            'P@3': f"{result.get('precision@3', 0):.3f}",
-            'R@5': f"{result.get('recall@5', 0):.3f}",
-            'Best Rank': best_rank,
-            'Roots in Top-3': f"{roots_in_top3}/{total_roots}",
-        })
-    
-    summary_df = pd.DataFrame(summary_rows)
-    print("\n" + summary_df.to_string(index=False))
-    
-    # ===========================
-    # AGGREGATED METRICS
-    # ===========================
-    print("\n" + "="*120)
-    print("AGGREGATED EVALUATION METRICS")
-    print("="*120)
-    
-    results_df = pd.DataFrame(all_results)
-    
-    # Per-graph aggregates
-    if len(results_df) > 0:
-        agg_stats = {
-            'Total Test Cases': len(results_df),
-            'Mean Top-1 Accuracy': f"{results_df['top1_accuracy'].mean():.1%}",
-            'Mean Top-3 Accuracy': f"{results_df['top3_accuracy'].mean():.1%}",
-            'Mean Top-5 Accuracy': f"{results_df['top5_accuracy'].mean():.1%}",
-            'Mean MRR': f"{results_df['mrr'].mean():.3f}",
-            'Mean Precision@3': f"{results_df['precision@3'].mean():.3f}",
-            'Mean Recall@5': f"{results_df['recall@5'].mean():.3f}",
-            'Std MRR': f"{results_df['mrr'].std():.3f}" if len(results_df) > 1 else 'N/A',
-        }
-        
-        print("\n")
-        for metric, value in agg_stats.items():
-            print(f"  {metric}: {value}")
-        
-        # Count successes
-        top1_success = (results_df['top1_accuracy'] > 0).sum()
-        top3_success = (results_df['top3_accuracy'] > 0).sum()
-        top5_success = (results_df['top5_accuracy'] > 0).sum()
-        
-        print(f"\n  Success Rates:")
-        print(f"    Root in Top-1: {top1_success}/{len(results_df)} ({100*top1_success/len(results_df):.0f}%)")
-        print(f"    Root in Top-3: {top3_success}/{len(results_df)} ({100*top3_success/len(results_df):.0f}%)")
-        print(f"    Root in Top-5: {top5_success}/{len(results_df)} ({100*top5_success/len(results_df):.0f}%)")
-    
-    # Per-test-case breakdown if multiple
-    if len(results_df) > 1 and 'test_case' in results_df.columns:
-        print("\n" + "-"*80)
-        print("PER-FAULT-TYPE BREAKDOWN")
-        print("-"*80)
-        
-        case_summary = results_df.groupby('test_case').agg({
-            'mrr': ['mean', 'std'],
-            'top3_accuracy': 'mean',
-            'recall@5': 'mean',
-            'num_anomalies': 'mean'
-        }).round(3)
-        
-        print("\n" + case_summary.to_string())
-else:
-    print("\n⚠️ No results to summarize")
 
 # COMMAND ----------
 
@@ -1062,72 +1050,95 @@ else:
 # COMMAND ----------
 
 # ===========================
-# COMPARISON SUMMARY
+# AGGREGATED EVALUATION SUMMARY
 # ===========================
 
 if all_results:
-    print("\n" + "="*100)
-    print("COMPARISON SUMMARY ACROSS ALL EVALUATED GRAPHS")
-    print("="*100)
+    results_df = pd.DataFrame(all_results)
     
-    # Create comparison DataFrame
-    comparison_df = pd.DataFrame(all_results)
+    print("\n" + "="*120)
+    print("AGGREGATED EVALUATION METRICS")
+    print("="*120)
     
-    # Display key metrics
-    display_cols = [
-        'graph_name', 'graph_type', 'traversal_method',
-        'top3_accuracy', 'mrr', 'precision@3', 'recall@5', 'num_edges', 'num_anomalies'
-    ]
+    # Overall statistics
+    print(f"\nTotal Evaluations: {len(results_df)}")
+    print(f"Total Test Cases: {results_df['test_case'].nunique()}")
+    print(f"Graphs Evaluated: {results_df['graph_name'].nunique()}")
     
-    # Filter to columns that exist
-    display_cols = [c for c in display_cols if c in comparison_df.columns]
+    print(f"\nOverall Performance:")
+    print(f"  Mean Top-1 Accuracy: {results_df['top1_accuracy'].mean():.1%}")
+    print(f"  Mean Top-3 Accuracy: {results_df['top3_accuracy'].mean():.1%}")
+    print(f"  Mean Top-5 Accuracy: {results_df['top5_accuracy'].mean():.1%}")
+    print(f"  Mean Top-10 Accuracy: {results_df['top10_accuracy'].mean():.1%}")
+    print(f"  Mean MRR: {results_df['mrr'].mean():.3f}")
+    print(f"  Mean Precision@5: {results_df['precision@5'].mean():.3f}")
+    print(f"  Mean Recall@5: {results_df['recall@5'].mean():.3f}")
+    print(f"  Mean Recall@10: {results_df['recall@10'].mean():.3f}")
     
-    print("\n" + comparison_df[display_cols].to_string(index=False))
+    # Success rates
+    top1_success = (results_df['top1_accuracy'] > 0).sum()
+    top3_success = (results_df['top3_accuracy'] > 0).sum()
+    top5_success = (results_df['top5_accuracy'] > 0).sum()
+    top10_success = (results_df['top10_accuracy'] > 0).sum()
     
-    # Find best performing configuration
-    if 'mrr' in comparison_df.columns and not comparison_df['mrr'].isna().all():
-        best_idx = comparison_df['mrr'].idxmax()
-        best = comparison_df.loc[best_idx]
-        
-        print(f"\n{'='*100}")
-        print(f"🏆 BEST CONFIGURATION: {best['graph_name']}")
-        print(f"{'='*100}")
-        print(f"  MRR: {best.get('mrr', 'N/A'):.3f}")
-        print(f"  Top-3 Accuracy: {best.get('top3_accuracy', 'N/A'):.3f}")
-        print(f"  Recall@5: {best.get('recall@5', 'N/A'):.3f}")
-        print(f"  Traversal method: {best.get('traversal_method', 'N/A')}")
-        print(f"  Number of edges: {best.get('num_edges', 'N/A')}")
+    print(f"\nSuccess Rates:")
+    print(f"  Root in Top-1: {top1_success}/{len(results_df)} ({100*top1_success/len(results_df):.0f}%)")
+    print(f"  Root in Top-3: {top3_success}/{len(results_df)} ({100*top3_success/len(results_df):.0f}%)")
+    print(f"  Root in Top-5: {top5_success}/{len(results_df)} ({100*top5_success/len(results_df):.0f}%)")
+    print(f"  Root in Top-10: {top10_success}/{len(results_df)} ({100*top10_success/len(results_df):.0f}%)")
     
-    # Show per-algorithm comparison if multiple algorithms tested
-    if len(comparison_df['algorithm'].unique()) > 1:
-        print(f"\n{'='*100}")
-        print("PER-ALGORITHM SUMMARY (Best of filtered/raw)")
-        print("="*100)
-        
-        algo_summary = comparison_df.groupby('algorithm').agg({
-            'mrr': 'max',
-            'top3_accuracy': 'max',
-            'recall@5': 'max',
-            'num_edges': 'mean'
-        }).round(3)
-        
-        print("\n" + algo_summary.to_string())
+    # Per-graph summary
+    print(f"\n" + "-"*120)
+    print("Per-Graph Summary:")
+    print("-"*120)
     
-    # Show filtered vs raw comparison
-    if len(comparison_df['graph_type'].unique()) > 1:
-        print(f"\n{'='*100}")
-        print("FILTERED vs RAW COMPARISON (averaged across algorithms)")
-        print("="*100)
-        
-        type_summary = comparison_df.groupby('graph_type').agg({
-            'mrr': 'mean',
-            'top3_accuracy': 'mean',
-            'recall@5': 'mean'
-        }).round(3)
-        
-        print("\n" + type_summary.to_string())
+    for graph_name in results_df['graph_name'].unique():
+        graph_data = results_df[results_df['graph_name'] == graph_name]
+        print(f"\n{graph_name}:")
+        print(f"  Total Cases: {len(graph_data)}")
+        print(f"  Avg Top-1 Accuracy: {graph_data['top1_accuracy'].mean():.1%}")
+        print(f"  Avg Top-3 Accuracy: {graph_data['top3_accuracy'].mean():.1%}")
+        print(f"  Avg Top-5 Accuracy: {graph_data['top5_accuracy'].mean():.1%}")
+        print(f"  Avg MRR: {graph_data['mrr'].mean():.3f}")
+        print(f"  Avg Precision@5: {graph_data['precision@5'].mean():.3f}")
+        print(f"  Avg Recall@5: {graph_data['recall@5'].mean():.3f}")
+    
+    # Per-test-case breakdown
+    print(f"\n" + "-"*120)
+    print("Per-Test-Case Breakdown:")
+    print("-"*120)
+    
+    case_summary = results_df.groupby('test_case').agg({
+        'top1_accuracy': 'mean',
+        'top3_accuracy': 'mean',
+        'top5_accuracy': 'mean',
+        'top10_accuracy': 'mean',
+        'mrr': 'mean',
+        'precision@5': 'mean',
+        'recall@5': 'mean',
+        'num_anomalies': 'mean'
+    }).round(3)
+    
+    # Rename columns for display
+    case_summary.columns = ['Top-1', 'Top-3', 'Top-5', 'Top-10', 'MRR', 'P@5', 'R@5', 'Avg Anomalies']
+    print("\n" + case_summary.to_string())
+    
+    # Detailed metrics per graph-test case
+    print(f"\n" + "-"*120)
+    print("Detailed Metrics (All Combinations):")
+    print("-"*120)
+    
+    detail_display = results_df[['test_case', 'graph_name', 'top1_accuracy', 'top3_accuracy', 'top5_accuracy', 
+                                  'top10_accuracy', 'mrr', 'precision@5', 'recall@5', 'num_anomalies', 'num_edges']].copy()
+    detail_display.columns = ['Test Case', 'Graph', 'Top-1', 'Top-3', 'Top-5', 'Top-10', 'MRR', 'P@5', 'R@5', 'Anomalies', 'Edges']
+    
+    # Format floats for better display
+    for col in ['Top-1', 'Top-3', 'Top-5', 'Top-10', 'MRR', 'P@5', 'R@5']:
+        detail_display[col] = detail_display[col].apply(lambda x: f"{x:.3f}")
+    
+    print("\n" + detail_display.to_string(index=False))
 else:
-    print("No results to compare")
+    print("\n⚠️ No results to summarize")
 
 # COMMAND ----------
 
@@ -1141,35 +1152,11 @@ else:
 # ===========================
 
 if all_results:
+    results_df = pd.DataFrame(all_results)
+    
     # Export comparison results as CSV
-    output_csv = f"{BASE_PATH}/evaluation_comparison.csv"
-    comparison_df.to_csv(output_csv, index=False)
-    print(f"✓ Saved comparison CSV to: {output_csv}")
-    
-    # Export detailed JSON with all metadata
-    detailed_results = {
-        "evaluation_timestamp": pd.Timestamp.now().isoformat(),
-        "test_dates": TEST_DATES,
-        "graphs_evaluated": [GRAPH_REGISTRY[k]['name'] for k in GRAPHS_TO_EVALUATE if GRAPHS_TO_EVALUATE[k]],
-        "ground_truth": {k: {"roots": list(v["true_roots"]), "date": v["test_date"]} 
-                         for k, v in GROUND_TRUTH.items()},
-        "parameters": {
-            "z_score_threshold": Z_SCORE_THRESHOLD,
-            "iqr_multiplier": IQR_MULTIPLIER,
-            "max_depth": MAX_DEPTH,
-            "decay_factor": DECAY_FACTOR,
-            "self_anomaly_bonus": SELF_ANOMALY_BONUS
-        },
-        "results": all_results
-    }
-    
-    json_path = f"{BASE_PATH}/evaluation_comparison.json"
-    with open(json_path, 'w') as f:
-        json.dump(detailed_results, f, indent=2, default=str)
-    print(f"✓ Saved detailed JSON to: {json_path}")
-    
-    print("\n" + "="*70)
-    print("✓ EVALUATION COMPLETE!")
-    print("="*70)
+    output_csv = f"{BASE_PATH}/evaluation_results.csv"
+    results_df.to_csv(output_csv, index=False)
+    print(f"\n✓ Results exported to: {output_csv}")
 else:
-    print("⚠️ No results to export") 
+    print("\n⚠️ No results to export") 
