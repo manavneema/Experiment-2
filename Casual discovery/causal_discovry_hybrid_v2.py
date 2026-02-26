@@ -1,16 +1,16 @@
 # Databricks notebook source
 # MAGIC %md
 # MAGIC # Pipeline D: Hybrid Causal Discovery (PC → NOTEARS → Bootstrap)
-# MAGIC 
+# MAGIC
 # MAGIC This notebook implements a hybrid causal discovery approach optimized for the fault-injected training data.
-# MAGIC 
+# MAGIC
 # MAGIC **Key Design Decisions:**
 # MAGIC - Uses ALL 107 dates (42 fault + 65 clean) for full variance spectrum
 # MAGIC - Only drops globally constant columns (variance == 0 across ALL 107 runs)
 # MAGIC - Enforces tier constraints: Raw → Bronze → Silver → ML/KPIs
 # MAGIC - Hybrid pipeline: PC skeleton → NOTEARS weights → Bootstrap stability
 # MAGIC - Fault labels used ONLY for evaluation, never as features
-# MAGIC 
+# MAGIC
 # MAGIC **Pipeline Architecture:**
 # MAGIC | Phase | Step | Method |
 # MAGIC |-------|------|--------|
@@ -63,8 +63,8 @@ PIPELINE_NAME = "Hybrid_PC_NOTEARS_Bootstrap"
 METRICS_TABLE = "bms_ds_prod.bms_ds_dasc.temp_raw_metrics"
 
 # Data configuration
-TOTAL_RUNS = 107  # 42 fault + 65 clean
-FAULT_CUTOFF_DATE = "2025-12-01"  # Dates before this are faulty
+# TOTAL_RUNS = 107  # 42 fault + 65 clean
+# FAULT_CUTOFF_DATE = "2025-12-01"  # Dates before this are faulty
 
 # PC Algorithm parameters (grid search)
 PC_ALPHA_CANDIDATES = [0.05, 0.07, 0.10]
@@ -84,6 +84,28 @@ TARGET_FEATURES = 50  # Allow more features for discovery
 CORRELATION_THRESHOLD = 0.99  # Only remove near-perfect correlation (|corr| > 0.99)
 VARIANCE_THRESHOLD = 0.0  # Only drop truly constant (variance == 0)
 
+# Artifact path
+path = "/Volumes/bms_ds_science_prod/bms_ds_dasc/bms_ds_dasc/lab_day/causal_discovery_artifacts"
+pipeline_path = f"{path}/{PIPELINE_NAME}"
+
+print(f"Pipeline D Configuration:")
+print(f"  - Method: Hybrid (PC → NOTEARS → Bootstrap)")
+print(f"  - Total Training Days: {TOTAL_RUNS}")
+print(f"  - PC Alpha Candidates: {PC_ALPHA_CANDIDATES}")
+print(f"  - NOTEARS Lambda Candidates: {NOTEARS_LAMBDA_CANDIDATES}")
+print(f"  - Bootstrap Resamples: {BOOTSTRAP_RESAMPLES}")
+print(f"  - Bootstrap Edge Threshold: {BOOTSTRAP_EDGE_THRESHOLD}")
+print(f"  - Target Features: {TARGET_FEATURES}")
+print(f"  - Correlation Threshold: {CORRELATION_THRESHOLD}")
+print(f"  - Artifact Path: {pipeline_path}")
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC ## Phase 2: Data Loading & Preparation
+
+# COMMAND ----------
+
 # ===========================
 # AUTOMATIC REDUNDANCY DETECTION (No Hardcoding)
 # ===========================
@@ -91,6 +113,7 @@ VARIANCE_THRESHOLD = 0.0  # Only drop truly constant (variance == 0)
 #   1. Mean/std pairs from same aggregation → keep mean, drop std
 #   2. Percentile groups (p50, p95, mean of same KPI) → keep p95 only
 #   3. Absolute value pairs (abs_X correlated with X) → keep original, drop abs
+
 
 def detect_redundant_metrics(columns):
     """
@@ -325,26 +348,6 @@ def detect_same_computation_pairs(columns, tier_assignments):
     
     return blacklist
 
-# Artifact path
-path = "/Volumes/bms_ds_science_prod/bms_ds_dasc/bms_ds_dasc/lab_day/causal_discovery_artifacts"
-pipeline_path = f"{path}/{PIPELINE_NAME}"
-
-print(f"Pipeline D Configuration:")
-print(f"  - Method: Hybrid (PC → NOTEARS → Bootstrap)")
-print(f"  - Total Training Days: {TOTAL_RUNS}")
-print(f"  - PC Alpha Candidates: {PC_ALPHA_CANDIDATES}")
-print(f"  - NOTEARS Lambda Candidates: {NOTEARS_LAMBDA_CANDIDATES}")
-print(f"  - Bootstrap Resamples: {BOOTSTRAP_RESAMPLES}")
-print(f"  - Bootstrap Edge Threshold: {BOOTSTRAP_EDGE_THRESHOLD}")
-print(f"  - Target Features: {TARGET_FEATURES}")
-print(f"  - Correlation Threshold: {CORRELATION_THRESHOLD}")
-print(f"  - Artifact Path: {pipeline_path}")
-
-# COMMAND ----------
-
-# MAGIC %md
-# MAGIC ## Phase 2: Data Loading & Preparation
-
 # COMMAND ----------
 
 # ===========================
@@ -367,21 +370,8 @@ def load_full_metrics_matrix(metrics_sdf, total_runs=107, date_col='date'):
     Returns:
         tuple: (metrics DataFrame, date_labels DataFrame)
     """
-    sdf = metrics_sdf.select(
-        F.col(date_col).alias('date'), 
-        F.col('metric_name'), 
-        F.col('metric_value')
-    )
-    
-    # Get all available dates, sorted ascending
-    all_dates = sdf.select('date').distinct().orderBy(F.asc('date'))
-    
-    # Take the most recent total_runs dates
-    recent_dates = sdf.select('date').distinct().orderBy(F.desc('date')).limit(total_runs)
-    recent = sdf.join(recent_dates, on='date', how='inner')
-    
     # Pivot to wide format
-    pivot = (recent
+    pivot = (metrics_sdf
              .withColumn('metric_value', F.col('metric_value').cast('double'))
              .groupBy('date')
              .pivot('metric_name')
@@ -1301,7 +1291,7 @@ print("\n" + "="*60)
 print("PHASE 1: DATA LOADING")
 print("="*60)
 
-metrics_sdf = spark.table(METRICS_TABLE)
+metrics_sdf = spark.sql(f"select * from {METRICS_TABLE} where date between '2025-10-19' and '2026-02-06'")
 metrics_pdf, date_labels = load_full_metrics_matrix(metrics_sdf, total_runs=TOTAL_RUNS)
 
 # Store fault labels for evaluation (NOT used in discovery)
@@ -1339,7 +1329,7 @@ columns = preprocessed_df.columns.tolist()
 constraint_matrix, tier_assignments = generate_tier_constraint_matrix(columns)
 blacklist = generate_full_blacklist(columns, tier_assignments)
 
-# NEW: Auto-detect same-computation pairs (instead of hardcoded list)
+# Auto-detect same-computation pairs (instead of hardcoded list)
 same_computation_blacklist = detect_same_computation_pairs(columns, tier_assignments)
 blacklist.extend(same_computation_blacklist)
 blacklist_set = set(blacklist)
@@ -1347,6 +1337,9 @@ blacklist_set = set(blacklist)
 print(f"\nTotal blacklist edges: {len(blacklist_set)}")
 print(f"  - Tier constraint edges: {len(blacklist)}")
 print(f"  - Same-computation edges (auto-detected): {len(same_computation_blacklist)}")
+
+# COMMAND ----------
+
 
 # =====================
 # PHASE 4: PC SKELETON
@@ -1369,6 +1362,8 @@ print(f"\nPC Skeleton: {len(skeleton_edges)} edges")
 
 # Visualize skeleton
 G_skeleton = visualize_skeleton(skeleton_edges, title="Phase 4: PC Skeleton (Before Constraints)")
+
+# COMMAND ----------
 
 # =====================
 # PHASE 5: NOTEARS WEIGHTS
@@ -1487,8 +1482,25 @@ print(f"  - Is valid DAG: {is_dag}")
 
 # COMMAND ----------
 
+# Display final edges sorted by weight
+print("="*80)
+print("FINAL 22 EDGES (sorted by |weight|)")
+print("="*80)
+
+for i, edge in enumerate(sorted(final_edges, key=lambda x: -x['abs_weight']), 1):
+    tier_from = tier_assignments.get(edge['from'], '?')
+    tier_to = tier_assignments.get(edge['to'], '?')
+    print(f"{i:2d}. [{tier_from}→{tier_to}] {edge['from']} → {edge['to']}")
+    print(f"      weight: {edge['weight']:.4f}, freq: {edge.get('bootstrap_frequency', 0):.2f}, source: {edge.get('source', 'unknown')}")
+
+# COMMAND ----------
+
 # MAGIC %md
 # MAGIC ## Export Artifacts
+
+# COMMAND ----------
+
+print(pipeline_path)
 
 # COMMAND ----------
 
@@ -1656,44 +1668,44 @@ print(f"  - Is Valid DAG: {is_dag}")
 
 # COMMAND ----------
 
-# ===========================
-# EVALUATION AGAINST FAULT LABELS
-# ===========================
-# This section uses fault labels for evaluation ONLY
-# Labels were never used during discovery
+# # ===========================
+# # EVALUATION AGAINST FAULT LABELS
+# # ===========================
+# # This section uses fault labels for evaluation ONLY
+# # Labels were never used during discovery
 
-print("\n" + "="*60)
-print("EVALUATION (Fault Labels - Post-hoc Only)")
-print("="*60)
+# print("\n" + "="*60)
+# print("EVALUATION (Fault Labels - Post-hoc Only)")
+# print("="*60)
 
-# Summary of edge sources
-source_counts = defaultdict(int)
-for edge in final_edges:
-    source_counts[edge.get('source', 'unknown')] += 1
+# # Summary of edge sources
+# source_counts = defaultdict(int)
+# for edge in final_edges:
+#     source_counts[edge.get('source', 'unknown')] += 1
 
-print("\nEdge Sources:")
-for source, count in sorted(source_counts.items(), key=lambda x: -x[1]):
-    print(f"  - {source}: {count} edges")
+# print("\nEdge Sources:")
+# for source, count in sorted(source_counts.items(), key=lambda x: -x[1]):
+#     print(f"  - {source}: {count} edges")
 
-# Tier coverage
-tier_0_edges = [e for e in final_edges if tier_assignments.get(e['from'], -1) == 0]
-tier_1_edges = [e for e in final_edges if tier_assignments.get(e['from'], -1) == 1]
-tier_2_edges = [e for e in final_edges if tier_assignments.get(e['from'], -1) == 2]
-tier_3_edges = [e for e in final_edges if tier_assignments.get(e['from'], -1) == 3]
+# # Tier coverage
+# tier_0_edges = [e for e in final_edges if tier_assignments.get(e['from'], -1) == 0]
+# tier_1_edges = [e for e in final_edges if tier_assignments.get(e['from'], -1) == 1]
+# tier_2_edges = [e for e in final_edges if tier_assignments.get(e['from'], -1) == 2]
+# tier_3_edges = [e for e in final_edges if tier_assignments.get(e['from'], -1) == 3]
 
-print("\nEdges by Source Tier:")
-print(f"  - Raw → *: {len(tier_0_edges)}")
-print(f"  - Bronze → *: {len(tier_1_edges)}")
-print(f"  - Silver → *: {len(tier_2_edges)}")
-print(f"  - ML/KPI → *: {len(tier_3_edges)}")
+# print("\nEdges by Source Tier:")
+# print(f"  - Raw → *: {len(tier_0_edges)}")
+# print(f"  - Bronze → *: {len(tier_1_edges)}")
+# print(f"  - Silver → *: {len(tier_2_edges)}")
+# print(f"  - ML/KPI → *: {len(tier_3_edges)}")
 
-# Bootstrap frequency distribution
-frequencies = [e.get('bootstrap_frequency', 0) for e in final_edges]
-if frequencies:
-    print("\nBootstrap Frequency Distribution:")
-    print(f"  - Min: {min(frequencies):.2f}")
-    print(f"  - Max: {max(frequencies):.2f}")
-    print(f"  - Mean: {np.mean(frequencies):.2f}")
-    print(f"  - Edges with freq ≥ 0.8: {sum(1 for f in frequencies if f >= 0.8)}")
+# # Bootstrap frequency distribution
+# frequencies = [e.get('bootstrap_frequency', 0) for e in final_edges]
+# if frequencies:
+#     print("\nBootstrap Frequency Distribution:")
+#     print(f"  - Min: {min(frequencies):.2f}")
+#     print(f"  - Max: {max(frequencies):.2f}")
+#     print(f"  - Mean: {np.mean(frequencies):.2f}")
+#     print(f"  - Edges with freq ≥ 0.8: {sum(1 for f in frequencies if f >= 0.8)}")
 
-print("\n✓ Evaluation complete")
+# print("\n✓ Evaluation complete")

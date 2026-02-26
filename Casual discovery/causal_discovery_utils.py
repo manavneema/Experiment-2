@@ -1,7 +1,7 @@
 # Databricks notebook source
 # MAGIC %md
 # MAGIC # Causal Discovery Utilities
-# MAGIC 
+# MAGIC
 # MAGIC Shared utility functions for causal discovery pipelines A, B, and C.
 # MAGIC Contains common preprocessing, feature selection, visualization, and export functions.
 
@@ -113,7 +113,7 @@ HUMAN_PRIOR_WHITELIST = [
 # DATA LOADING
 # ===========================
 
-def spark_metrics_to_matrix(metrics_sdf, max_runs=65, date_col='date'):
+def spark_metrics_to_matrix(sdf):
     """
     Convert Spark metrics DataFrame to wide pandas DataFrame.
     
@@ -125,14 +125,8 @@ def spark_metrics_to_matrix(metrics_sdf, max_runs=65, date_col='date'):
     Returns:
         pd.DataFrame: Wide format with dates as index, metrics as columns
     """
-    sdf = metrics_sdf.select(
-        F.col(date_col).alias('date'), 
-        F.col('metric_name'), 
-        F.col('metric_value')
-    )
-    
     # Keep max_runs most recent dates
-    recent_dates = sdf.select('date').distinct().orderBy(F.desc('date')).limit(max_runs)
+    recent_dates = sdf.select('date').distinct().orderBy(F.desc('date'))
     recent = sdf.join(recent_dates, on='date', how='inner')
     
     # Pivot and aggregate

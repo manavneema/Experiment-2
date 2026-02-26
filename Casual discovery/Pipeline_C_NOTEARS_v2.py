@@ -1,7 +1,7 @@
 # Databricks notebook source
 # MAGIC %md
 # MAGIC # Pipeline C: NOTEARS-Based Causal Discovery
-# MAGIC 
+# MAGIC
 # MAGIC This notebook implements NOTEARS for causal discovery on cross-sectional data.
 # MAGIC - Implements linear NOTEARS algorithm for DAG discovery
 # MAGIC - Uses continuous optimization with acyclicity constraint
@@ -396,13 +396,16 @@ print("="*80)
 
 # Step 1: Load metrics data
 print("\n[Step 1] Loading metrics data...")
-metrics_sdf = spark.table(METRICS_TABLE)
-metrics_pdf = spark_metrics_to_matrix(metrics_sdf, max_runs=MAX_RUNS_TO_PIVOT)
+metrics_pdf = spark.sql(f"select date, metric_name, metric_value from {METRICS_TABLE} where date between '2025-10-19' and '2026-02-06'")
+
+pdf = spark_metrics_to_matrix(metrics_pdf)
+
+# COMMAND ----------
 
 # Step 2: Preprocess
 print("\n[Step 2] Preprocessing metrics matrix...")
 scaled, preprocess_meta = preprocess_metrics_matrix(
-    metrics_pdf,
+    pdf,
     zscore=True,
     feature_sample_ratio=3.0
 )
@@ -430,9 +433,12 @@ if final_features.isna().any().any():
 if n_features == 0:
     raise Exception("No features remaining after selection")
 
+# COMMAND ----------
+
+
 # Step 4: Generate blacklist
 print("\n[Step 4] Generating blacklist...")
-metric_cols = metrics_sdf.select("metric_name").distinct().rdd.flatMap(lambda x: x).collect()
+metric_cols = metrics_pdf.select("metric_name").distinct().rdd.flatMap(lambda x: x).collect()
 HUMAN_PRIOR_BLACKLIST = generate_stage_blacklist(metric_cols)
 print(f"  - Whitelist edges: {len(HUMAN_PRIOR_WHITELIST)}")
 print(f"  - Blacklist edges: {len(HUMAN_PRIOR_BLACKLIST)}")

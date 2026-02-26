@@ -1,7 +1,7 @@
 # Databricks notebook source
 # MAGIC %md
 # MAGIC # Pipeline B: Graphical Lasso-Based Causal Discovery
-# MAGIC 
+# MAGIC
 # MAGIC This notebook implements a Graphical Lasso approach for discovering undirected relationships.
 # MAGIC - Uses GraphicalLassoCV for automatic alpha selection
 # MAGIC - Estimates precision matrix and converts to partial correlations
@@ -299,8 +299,11 @@ print("="*80)
 
 # Step 1: Load metrics data
 print("\n[Step 1] Loading metrics data...")
-metrics_sdf = spark.table(METRICS_TABLE)
-metrics_pdf = spark_metrics_to_matrix(metrics_sdf, max_runs=MAX_RUNS_TO_PIVOT)
+metrics_sdf = spark.sql(f"select date, metric_name, metric_value from {METRICS_TABLE} where date between '2025-10-19' and '2026-02-06'")
+
+metrics_pdf = spark_metrics_to_matrix(metrics_sdf)
+
+# COMMAND ----------
 
 # Step 2: Preprocess
 print("\n[Step 2] Preprocessing metrics matrix...")
@@ -330,6 +333,9 @@ if final_features.isna().any().any():
     raise Exception("NaN values detected after feature selection")
 if n_features == 0:
     raise Exception("No features remaining after selection")
+
+# COMMAND ----------
+
 
 # Step 4: Generate blacklist
 print("\n[Step 4] Generating blacklist...")

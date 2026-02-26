@@ -1,19 +1,19 @@
 # Databricks notebook source
 # MAGIC %md
 # MAGIC # Pipeline D v3: Scalable Hybrid Causal Discovery
-# MAGIC 
+# MAGIC
 # MAGIC This notebook implements a **scalable, academically defensible** causal discovery approach.
-# MAGIC 
+# MAGIC
 # MAGIC ## Key Design Principles (NO HARDCODING)
-# MAGIC 
+# MAGIC
 # MAGIC 1. **Pattern-Based Structural Priors**: Instead of listing specific edges, we define RULES based on naming patterns
 # MAGIC 2. **Correlation-Based Isolation Recovery**: Isolated nodes automatically get edges to their most correlated neighbors
 # MAGIC 3. **Softer Tier Constraints**: Only forbid edges that skip 2+ tiers (not all downstream→upstream)
 # MAGIC 4. **No Same-Computation Blacklist**: Let the data speak, don't pre-filter based on assumptions
 # MAGIC 5. **Lower Discovery Thresholds**: More inclusive edge discovery, then let downstream evaluation filter
-# MAGIC 
+# MAGIC
 # MAGIC ## Why This is Academically Defensible
-# MAGIC 
+# MAGIC
 # MAGIC | Approach | Problem | Solution |
 # MAGIC |----------|---------|----------|
 # MAGIC | Hardcoded node whitelist | Not generalizable | Pattern-based rules |
@@ -140,10 +140,10 @@ path = "/Volumes/bms_ds_science_prod/bms_ds_dasc/bms_ds_dasc/lab_day/causal_disc
 pipeline_path = f"{path}/{PIPELINE_NAME}"
 
 print(f"Pipeline D v3 (Scalable) Configuration:")
-print(f"  - PC Alpha Candidates: {PC_ALPHA_CANDIDATES} (HIGHER)")
-print(f"  - Bootstrap Threshold: {BOOTSTRAP_EDGE_THRESHOLD} (LOWER)")
+print(f"  - PC Alpha Candidates: {PC_ALPHA_CANDIDATES} (HIGHER than V2)")
+print(f"  - Bootstrap Threshold: {BOOTSTRAP_EDGE_THRESHOLD} (LOWER than V2)")
 print(f"  - Correlation Threshold: {CORRELATION_THRESHOLD}")
-print(f"  - Tier Jump Threshold: {TIER_JUMP_THRESHOLD} (SOFTER)")
+print(f"  - Tier Jump Threshold: {TIER_JUMP_THRESHOLD}")
 print(f"  - Isolation Recovery: {ISOLATION_RECOVERY_ENABLED}")
 
 # COMMAND ----------
@@ -278,10 +278,6 @@ def generate_pattern_based_priors(columns):
 # MAGIC ## Correlation-Based Isolation Recovery
 
 # COMMAND ----------
-
-# ===========================
-# ISOLATION RECOVERY
-# ===========================
 
 # ===========================
 # WEIGHT NORMALIZATION
@@ -648,7 +644,7 @@ def generate_soft_tier_blacklist(columns, tier_assignments, tier_jump_threshold=
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ## Simplified Preprocessing (No Redundancy Detection)
+# MAGIC ## Preprocessing w/o Redundancy Detection
 
 # COMMAND ----------
 
@@ -1282,18 +1278,15 @@ def compute_baseline_stats(df):
 
 # COMMAND ----------
 
-def load_full_metrics(metrics_sdf, total_runs=107, date_col='date', fault_cutoff='2025-12-01'):
+def load_full_metrics(metrics_sdf, total_runs=107):
     """Load full metrics matrix."""
     sdf = metrics_sdf.select(
-        F.col(date_col).alias('date'),
+        F.col('date'),
         F.col('metric_name'),
         F.col('metric_value')
     )
-    
-    recent_dates = sdf.select('date').distinct().orderBy(F.desc('date')).limit(total_runs)
-    recent = sdf.join(recent_dates, on='date', how='inner')
-    
-    pivot = (recent
+        
+    pivot = (sdf
              .withColumn('metric_value', F.col('metric_value').cast('double'))
              .groupBy('date')
              .pivot('metric_name')
@@ -1305,7 +1298,7 @@ def load_full_metrics(metrics_sdf, total_runs=107, date_col='date', fault_cutoff
     
     date_labels = pd.DataFrame({
         'date': pdf.index,
-        'is_fault': pdf.index < pd.Timestamp(fault_cutoff)
+        'is_fault': pdf.index < pd.Timestamp('2025-12-01')
     }).set_index('date')
     
     n_fault = date_labels['is_fault'].sum()
@@ -1322,21 +1315,17 @@ def load_full_metrics(metrics_sdf, total_runs=107, date_col='date', fault_cutoff
 # COMMAND ----------
 
 print("="*80)
-print("PIPELINE D v3: SCALABLE HYBRID CAUSAL DISCOVERY")
-print("="*80)
+print("HYBRID CAUSAL DISCOVERY PIPELINE")
 
 # =====================
 # PHASE 1: DATA LOADING
 # =====================
-print("\n" + "="*60)
 print("PHASE 1: DATA LOADING")
-print("="*60)
+print("="*80)
 
-metrics_sdf = spark.table(METRICS_TABLE)
+metrics_sdf = spark.sql(f"select * from {METRICS_TABLE} where date between '2025-10-19' and '2026-02-06'")
 metrics_pdf, date_labels = load_full_metrics(
-    metrics_sdf, 
-    total_runs=TOTAL_RUNS, 
-    fault_cutoff=FAULT_CUTOFF_DATE
+    metrics_sdf
 )
 
 fault_dates = date_labels[date_labels['is_fault']].index.tolist()
@@ -1357,6 +1346,10 @@ preprocessed_df, preprocess_meta = preprocess_simple(
 )
 
 columns = preprocessed_df.columns.tolist()
+display(preprocessed_df)
+
+# COMMAND ----------
+
 
 # =====================
 # PHASE 3: TIER ASSIGNMENT & SOFT CONSTRAINTS
@@ -1433,6 +1426,8 @@ stable_edges = stable_edges_0_40  # Use exploratory as default
 print(f"\nBootstrap Summary:")
 print(f"  Conservative (0.60): {len(stable_edges_0_60)} edges")
 print(f"  Exploratory (0.40): {len(stable_edges_0_40)} edges")
+
+# COMMAND ----------
 
 # =====================
 # PHASE 8: REFINEMENT
@@ -1792,3 +1787,9 @@ print(f"  - Edges: {len(final_edges)}")
 print(f"  - Coverage: {len(connected)/len(columns)*100:.1f}%")
 print(f"  - Isolated: {len(isolated_final)}")
 
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC select * 
+# MAGIC from bms_ds_prod.bms_ds_dasc.temp_raw_metrics

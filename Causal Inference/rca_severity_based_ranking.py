@@ -1,13 +1,13 @@
 # Databricks notebook source
 # MAGIC %md
 # MAGIC # Unified RCA Evaluation Across All Causal Discovery Algorithms
-# MAGIC 
+# MAGIC
 # MAGIC This notebook evaluates root cause analysis performance across:
 # MAGIC - **Pipeline A**: PC-Based (directed/undirected edges)
 # MAGIC - **Pipeline B**: GraphicalLasso-Based (undirected edges, partial correlations)
 # MAGIC - **Pipeline C**: NOTEARS-Based (directed DAG, structural weights)
 # MAGIC - **Pipeline D**: Hybrid PC→NOTEARS→Bootstrap (directed DAG, bootstrap-stable weights)
-# MAGIC 
+# MAGIC
 # MAGIC Supports both **filtered** (after human priors) and **raw** (before human priors) graphs.
 
 # COMMAND ----------
@@ -19,6 +19,7 @@ from pathlib import Path
 from pyspark.sql import functions as F
 from collections import defaultdict
 from typing import Dict, List, Tuple, Optional
+from collections import deque
 
 # COMMAND ----------
 
@@ -124,24 +125,24 @@ GRAPH_REGISTRY = {
     },
     
     # ===========================
-    # Hybrid PC→NOTEARS→Bootstrap (Pipeline D)
+    # Hybrid PC→NOTEARS→Bootstrap_V3 ITER 107 Days without fuel metrics
     # ===========================
     # Best of both worlds: PC skeleton + NOTEARS weights + Bootstrap stability
     # Features: Automatic redundancy detection, tier constraints, structural priors
-    "hybrid_filtered": {
-        "name": "Hybrid PC-NOTEARS-Bootstrap (Filtered)",
+    "hybrid_v3_filtered": {
+        "name": "Iter_4_hybrid_pipeline_v3 with 107 Days data without fuel metrics",
         "algorithm": "Hybrid_PC_NOTEARS_Bootstrap",
-        "folder": "Hybrid_PC_NOTEARS_Bootstrap",
+        "folder": "Iter_4_hybrid_pipeline_v3",
         "edge_type": "directed",  # True DAG with bootstrap-stable edges
         "weight_column": "abs_weight",
-        "edge_file": "hybrid_causal_edges.csv",
-        "upstream_map": "upstream_map.json",
-        "downstream_map": "downstream_map.json",
-        "baseline_stats": "baseline_stats.json",
+        "edge_file": "hybrid_causal_edges-2.csv",
+        "upstream_map": "upstream_map-2.json",
+        "downstream_map": "downstream_map-2.json",
+        "baseline_stats": "baseline_stats-2.json",
         "traversal_method": "downstream",  # DAG uses downstream traversal
     },
-    # New v3 pipeline folder – artifacts created by causal_discovery_v3_scalable.py
-    "hybrid_v3_filtered": {
+    # New v3 pipeline folder – artifacts created by causal_discovery_v3_scalable.py ITER 107 Days WITH fuel metrics
+    "hybrid_v3_filtered_fuel": {
         "name": "Hybrid PC-NOTEARS-Bootstrap v3 (Filtered)",
         "algorithm": "Hybrid_PC_NOTEARS_Bootstrap_v3",
         "folder": "Hybrid_PC_NOTEARS_Bootstrap_v3",
@@ -179,11 +180,9 @@ GRAPHS_TO_EVALUATE = {
     "notears_raw": False,
     
     # Hybrid graphs
-    "hybrid_filtered": False,          # original pipeline (v2)
-    "hybrid_v3_filtered": True,        # new v3 artifacts
-    
-    # Hybrid PC-NOTEARS-Bootstrap (Pipeline D) - NEW
-    "hybrid_filtered": True,
+    "hybrid_v3_filtered": True,          # Iter_4_hybrid_pipeline_v3 with 107 Days data without fuel metrics
+    "hybrid_v3_filtered_fuel": False,        # new v3 artifacts
+
 }
 
 # ===========================
@@ -224,9 +223,18 @@ active_graphs = [k for k, v in GRAPHS_TO_EVALUATE.items() if v]
 print("="*70)
 print("EVALUATION CONFIGURATION")
 print("="*70)
-print(f"Graphs to evaluate: {', '.join(active_graphs)}")
-print(f"Total test dates: {len(TEST_DATES)}")
-print(f"Severity weighting: {'ENABLED' if USE_SEVERITY_WEIGHTING else 'DISABLED'}")
+print(f"\nGraphs to evaluate ({len(active_graphs)} selected):")
+for g in active_graphs:
+    print("\n")
+    for k, v in GRAPH_REGISTRY[g].items():
+            print(f"{k}: {v}")
+
+print(f"\nTest dates: {TEST_DATES}")
+print(f"Z-score threshold: {Z_SCORE_THRESHOLD}")
+print(f"IQR multiplier: {IQR_MULTIPLIER}")
+print(f"Max traversal depth: {MAX_DEPTH}")
+print(f"Decay factor: {DECAY_FACTOR}")
+print(f"Severity weighting: {'ENABLED (CloudRanger approach)' if USE_SEVERITY_WEIGHTING else 'DISABLED (uniform)'}")
 
 # COMMAND ----------
 
@@ -234,6 +242,7 @@ print(f"Severity weighting: {'ENABLED' if USE_SEVERITY_WEIGHTING else 'DISABLED'
 # MAGIC ## Ground Truth Definition
 
 # COMMAND ----------
+
 
 # ===========================
 # GROUND TRUTH
@@ -255,17 +264,17 @@ GROUND_TRUTH = {
     },
     "case2_distance_gps_nulls": {
         "description": "35% of rows have null distance, start_latitude, start_longitude (GPS coverage loss)",
-        "true_roots": {"raw_null_count_gps_coverage", "raw_null_count_start", "raw_distance_std"},
+        "true_roots": {"raw_null_count_gps_coverage", "raw_null_count_start", "raw_null_count_distance"},
         "test_date": "2026-02-09"
     },
     "case3_fuel_sensor_drift": {
         "description": "15% of fuel readings show 2-3.5x drift (sensor calibration failure)",
-        "true_roots": {"silver_ml_large_error_count", "p95_fuel_per_100km"},
+        "true_roots": {"silver_ml_large_error_count", "raw_std_fuel_consumption_ecol"},
         "test_date": "2026-02-10"
     },
     "case4_clock_skew": {
         "description": "Device clock sync failure: 10% future dates, 10% negative durations (temporal inconsistency)",
-        "true_roots": {"raw_max_trip_end_ts", "bronze_rows_dropped_by_rules"},
+        "true_roots": {"raw_max_trip_end_ts"},
         "test_date": "2026-02-11"
     },
     "case5_sensor_reads_nulls": {
@@ -285,17 +294,17 @@ GROUND_TRUTH = {
     },
     "case8_invalid_ranges": {
         "description": "Data entry errors: 30% of rows have invalid ranges (start AFTER end, negative durations)",
-        "true_roots": {"bronze_duration_mean", "bronze_rows_dropped_by_rules"},
+        "true_roots": {"bronze_duration_mean"},
         "test_date": "2025-10-04"
     },
     "case9_speed_prediction_drift": {
         "description": "ML model drift: 20% of trips have speed predictions 1.5-2.5x actual (model degradation)",
-        "true_roots": {"silver_ml_large_error_count", "silver_ml_prediction_std"},
+        "true_roots": {"silver_ml_large_error_count", "silver_ml_prediction_mean"},
         "test_date": "2025-10-05"
     },
     "case10_prediction_outliers": {
         "description": "ML edge case failure: 15% of rows have extreme predictions (20x normal) from ML model",
-        "true_roots": {"silver_ml_large_error_count"},
+        "true_roots": {"silver_ml_large_error_count", "silver_ml_prediction_mean"},
         "test_date": "2025-10-06"
     },
     "case11_duration_anomalies": {
@@ -310,17 +319,17 @@ GROUND_TRUTH = {
     },
     "case13_aggregation_errors": {
         "description": "Aggregation window misconfiguration: 15% of rows duplicated",
-        "true_roots": {"bronze_duplicate_rows_removed"},
+        "true_roots": {"raw_duplicate_trip_ids"},
         "test_date": "2025-10-09"
     },
     "case14_join_failures": {
         "description": "Vehicle master data incomplete: 20% join failures in bronze→silver (vehicle master data mismatch)",
-        "true_roots": {"silver_vehicle_info_join_miss_rate"},
+        "true_roots": {"raw_vehicle_master_incomplete"},
         "test_date": "2025-10-10"
     },
     "case15_duplicate_handling": {
         "description": "Deduplication failure: 30% of rows duplicated (both versions reach KPIs)",
-        "true_roots": {"bronze_duplicate_rows_removed"},
+        "true_roots": {"raw_duplicate_trip_ids"},
         "test_date": "2025-10-11"
     },
     "case16_vehicle_id_nulls_low": {
@@ -370,7 +379,7 @@ for case_name, case_info in GROUND_TRUTH.items():
     for root in case_info['true_roots']:
         print(f"    - {root}")
 
-print(f"\nStatic test dates: {TEST_DATES}")
+print(f"\nStatic test dates: {TEST_DATES}.\nTotal test cases {len(TEST_DATES)}")
 
 # COMMAND ----------
 
@@ -475,12 +484,12 @@ def validate_graph_files(graph_key: str) -> bool:
 
 # MAGIC %md
 # MAGIC ## Anomaly Detection
-# MAGIC 
+# MAGIC
 # MAGIC **Method**: Dual-test approach using Z-score AND IQR for robustness.
 # MAGIC - **Z-score test**: Flags values > 3 standard deviations from mean (assumes normality)
 # MAGIC - **IQR test**: Flags values outside [Q1 - 1.5×IQR, Q3 + 1.5×IQR] (distribution-free)
 # MAGIC - **Combined**: Anomaly if EITHER test triggers (more sensitive)
-# MAGIC 
+# MAGIC
 # MAGIC **Why dual tests?**
 # MAGIC - Z-score catches extreme values in normally distributed metrics
 # MAGIC - IQR catches outliers even in skewed distributions
@@ -569,29 +578,30 @@ def detect_anomalies(
 
 # MAGIC %md
 # MAGIC ## Candidate Scoring Algorithms
-# MAGIC 
+# MAGIC
 # MAGIC Two traversal methods are supported, each suited to different graph types:
-# MAGIC 
+# MAGIC
 # MAGIC ### 1. Downstream Traversal (for DAGs: NOTEARS, PC)
 # MAGIC **Intuition**: A true root cause will have many anomalous metrics DOWNSTREAM of it.
 # MAGIC - Start at each candidate metric
 # MAGIC - BFS traverse following causal edges (parent → child)
 # MAGIC - Score = sum of reachable anomalies weighted by decay and edge strength
 # MAGIC - Bonus if candidate itself is anomalous
-# MAGIC 
+# MAGIC
 # MAGIC ### 2. Upstream Traversal (for undirected graphs: GraphicalLasso)
 # MAGIC **Intuition**: Trace back from anomalies to find common upstream causes.
 # MAGIC - Start at each detected anomaly
 # MAGIC - BFS traverse following edges backward (child → parent)
 # MAGIC - Metrics visited by MANY anomalies get higher scores
 # MAGIC - Edge weights amplify scores along strong connections
-# MAGIC 
+# MAGIC
 # MAGIC ### Edge Weights
 # MAGIC - **PC**: OLS regression coefficients (|β|)
 # MAGIC - **GraphicalLasso**: Absolute partial correlations
 # MAGIC - **NOTEARS**: Structural equation coefficients (|W_ij|)
 
 # COMMAND ----------
+
 
 def score_candidates_downstream(
     anomalies: dict,
@@ -877,6 +887,7 @@ def compute_evaluation_metrics(predictions: list, true_roots: set) -> dict:
 
 # COMMAND ----------
 
+# DBTITLE 1,Cell 17
 def load_test_run(test_date: str) -> dict:
     """Load metrics for a specific test date."""
     print(f"\nLoading test run for date: {test_date}")
@@ -890,7 +901,12 @@ def load_test_run(test_date: str) -> dict:
         .agg(F.first("metric_value"))
     )
     
-    new_run_dict = new_run_metrics.drop('date').first().asDict()
+    first_row = new_run_metrics.drop('date').first()
+    if first_row is None:
+        print(f"  ⚠️ No data found for date {test_date}")
+        return {}
+    
+    new_run_dict = first_row.asDict()
     print(f"  Loaded {len(new_run_dict)} metrics")
     return new_run_dict
 
@@ -900,6 +916,7 @@ def load_test_run(test_date: str) -> dict:
 # MAGIC ## Main Evaluation Loop
 
 # COMMAND ----------
+
 
 # ===========================
 # MAIN EVALUATION LOOP
@@ -1147,16 +1164,17 @@ else:
 
 # COMMAND ----------
 
-# ===========================
-# EXPORT RESULTS
-# ===========================
+display(all_results)
 
-if all_results:
-    results_df = pd.DataFrame(all_results)
+# COMMAND ----------
+
+
+# if all_results:
+#     results_df = pd.DataFrame(all_results)
     
-    # Export comparison results as CSV
-    output_csv = f"{BASE_PATH}/evaluation_results.csv"
-    results_df.to_csv(output_csv, index=False)
-    print(f"\n✓ Results exported to: {output_csv}")
-else:
-    print("\n⚠️ No results to export") 
+#     # Export comparison results as CSV
+#     output_csv = f"{BASE_PATH}/evaluation_results.csv"
+#     results_df.to_csv(output_csv, index=False)
+#     print(f"\n✓ Results exported to: {output_csv}")
+# else:
+#     print("\n⚠️ No results to export") 
