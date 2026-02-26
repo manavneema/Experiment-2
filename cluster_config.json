@@ -1,0 +1,98 @@
+{
+    "cluster_id": "0119-190432-2uvt8xif",
+    "creator_user_name": "manav.neema@bridgestone.com",
+    "driver": {
+        "private_ip": "10.192.130.10",
+        "public_dns": "",
+        "node_id": "28abc20cd7e94ea5a0ba6aa75996496b",
+        "instance_id": "debb19717d9142049de1d4ad19a31aa9",
+        "start_timestamp": 1772137428399,
+        "node_type_id": "Standard_D8ds_v5",
+        "node_attributes": {
+            "is_spot": false
+        },
+        "host_private_ip": "10.192.130.68",
+        "ngrok_endpoint_base_domain": "green.mux.ngrok-dataplane.wildcard"
+    },
+    "spark_context_id": 2780830396894044000,
+    "driver_healthy": true,
+    "jdbc_port": 10000,
+    "cluster_name": "Manav Neema's Personal Compute Cluster 2026-01-19",
+    "spark_version": "18.0.x-scala2.13",
+    "spark_conf": {
+        "spark.databricks.cluster.profile": "singleNode",
+        "spark.master": "local[*, 4]"
+    },
+    "azure_attributes": {
+        "first_on_demand": 1,
+        "availability": "ON_DEMAND_AZURE",
+        "spot_bid_max_price": -1
+    },
+    "node_type_id": "Standard_D8ds_v5",
+    "driver_node_type_id": "Standard_D8ds_v5",
+    "custom_tags": {
+        "ResourceClass": "SingleNode"
+    },
+    "autotermination_minutes": 30,
+    "enable_elastic_disk": true,
+    "disk_spec": {},
+    "cluster_source": "UI",
+    "single_user_name": "manav.neema@bridgestone.com",
+    "policy_id": "001FB7CAAA370D05",
+    "enable_local_disk_encryption": false,
+    "instance_source": {
+        "node_type_id": "Standard_D8ds_v5"
+    },
+    "driver_instance_source": {
+        "node_type_id": "Standard_D8ds_v5"
+    },
+    "data_security_mode": "SINGLE_USER",
+    "runtime_engine": "STANDARD",
+    "effective_spark_version": "18.0.x-cpu-ml-scala2.13",
+    "kind": "CLASSIC_PREVIEW",
+    "use_ml_runtime": true,
+    "is_single_node": true,
+    "assigned_principal": "user:manav.neema@bridgestone.com",
+    "release_version": "18.0.2",
+    "state": "RUNNING",
+    "state_message": "",
+    "start_time": 1768849472240,
+    "last_state_loss_time": 1772137557931,
+    "last_activity_time": 1772137522276,
+    "last_restarted_time": 1772137557999,
+    "num_workers": 0,
+    "cluster_memory_mb": 32768,
+    "cluster_cores": 8,
+    "default_tags": {
+        "Vendor": "Databricks",
+        "Creator": "manav.neema@bridgestone.com",
+        "ClusterName": "Manav Neema's Personal Compute Cluster 2026-01-19",
+        "ClusterId": "0119-190432-2uvt8xif",
+        "Department": "IT",
+        "Country": "",
+        "domain": "bmsscience",
+        "Cost Owner": "Tom Winkler",
+        "Sequence": "003",
+        "capability": "compute",
+        "environment": "production",
+        "Application Owner": "Damon Plackard",
+        "cost center": "NL51711238",
+        "Business Owner": "Tom Winkler",
+        "Application name": "BMSDATASCIENCE"
+    },
+    "init_scripts_safe_mode": false,
+    "spec": {
+        "cluster_name": "Manav Neema's Personal Compute Cluster 2026-01-19",
+        "spark_version": "18.0.x-scala2.13",
+        "node_type_id": "Standard_D8ds_v5",
+        "autotermination_minutes": 30,
+        "single_user_name": "manav.neema@bridgestone.com",
+        "policy_id": "001FB7CAAA370D05",
+        "data_security_mode": "DATA_SECURITY_MODE_DEDICATED",
+        "kind": "CLASSIC_PREVIEW",
+        "use_ml_runtime": true,
+        "is_single_node": true,
+        "num_workers": 0,
+        "apply_policy_default_values": false
+    }
+}
